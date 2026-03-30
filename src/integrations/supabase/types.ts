@@ -14,16 +14,392 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agendamentos: {
+        Row: {
+          barbearia_id: string
+          barbeiro_id: string
+          cliente_id: string | null
+          created_at: string | null
+          data: string
+          duracao: number
+          hora: string
+          id: string
+          preco: number
+          servico_id: string
+          status: string | null
+        }
+        Insert: {
+          barbearia_id: string
+          barbeiro_id: string
+          cliente_id?: string | null
+          created_at?: string | null
+          data: string
+          duracao: number
+          hora: string
+          id?: string
+          preco: number
+          servico_id: string
+          status?: string | null
+        }
+        Update: {
+          barbearia_id?: string
+          barbeiro_id?: string
+          cliente_id?: string | null
+          created_at?: string | null
+          data?: string
+          duracao?: number
+          hora?: string
+          id?: string
+          preco?: number
+          servico_id?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_barbearia_id_fkey"
+            columns: ["barbearia_id"]
+            isOneToOne: false
+            referencedRelation: "barbearias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_barbeiro_id_fkey"
+            columns: ["barbeiro_id"]
+            isOneToOne: false
+            referencedRelation: "barbeiros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_servico_id_fkey"
+            columns: ["servico_id"]
+            isOneToOne: false
+            referencedRelation: "servicos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      barbearias: {
+        Row: {
+          created_at: string | null
+          dias_funcionamento: number[] | null
+          endereco: string | null
+          hora_abertura: string | null
+          hora_fechamento: string | null
+          id: string
+          intervalo_fim: string | null
+          intervalo_inicio: string | null
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dias_funcionamento?: number[] | null
+          endereco?: string | null
+          hora_abertura?: string | null
+          hora_fechamento?: string | null
+          id?: string
+          intervalo_fim?: string | null
+          intervalo_inicio?: string | null
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dias_funcionamento?: number[] | null
+          endereco?: string | null
+          hora_abertura?: string | null
+          hora_fechamento?: string | null
+          id?: string
+          intervalo_fim?: string | null
+          intervalo_inicio?: string | null
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      barbeiro_bloqueios: {
+        Row: {
+          barbeiro_id: string
+          created_at: string | null
+          data: string
+          dia_inteiro: boolean | null
+          hora_fim: string | null
+          hora_inicio: string | null
+          id: string
+          motivo: string | null
+        }
+        Insert: {
+          barbeiro_id: string
+          created_at?: string | null
+          data: string
+          dia_inteiro?: boolean | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          motivo?: string | null
+        }
+        Update: {
+          barbeiro_id?: string
+          created_at?: string | null
+          data?: string
+          dia_inteiro?: boolean | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          motivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barbeiro_bloqueios_barbeiro_id_fkey"
+            columns: ["barbeiro_id"]
+            isOneToOne: false
+            referencedRelation: "barbeiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      barbeiro_permissoes: {
+        Row: {
+          barbeiro_id: string
+          editar_propria_agenda: boolean | null
+          id: string
+          ver_agenda_outros: boolean | null
+          ver_faturamento_total: boolean | null
+        }
+        Insert: {
+          barbeiro_id: string
+          editar_propria_agenda?: boolean | null
+          id?: string
+          ver_agenda_outros?: boolean | null
+          ver_faturamento_total?: boolean | null
+        }
+        Update: {
+          barbeiro_id?: string
+          editar_propria_agenda?: boolean | null
+          id?: string
+          ver_agenda_outros?: boolean | null
+          ver_faturamento_total?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barbeiro_permissoes_barbeiro_id_fkey"
+            columns: ["barbeiro_id"]
+            isOneToOne: true
+            referencedRelation: "barbeiros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      barbeiros: {
+        Row: {
+          ativo: boolean | null
+          barbearia_id: string
+          comissao: number | null
+          created_at: string | null
+          dias_folga: number[] | null
+          email: string | null
+          hora_fim: string | null
+          hora_inicio: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          barbearia_id: string
+          comissao?: number | null
+          created_at?: string | null
+          dias_folga?: number[] | null
+          email?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          barbearia_id?: string
+          comissao?: number | null
+          created_at?: string | null
+          dias_folga?: number[] | null
+          email?: string | null
+          hora_fim?: string | null
+          hora_inicio?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "barbeiros_barbearia_id_fkey"
+            columns: ["barbearia_id"]
+            isOneToOne: false
+            referencedRelation: "barbearias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clientes: {
+        Row: {
+          barbearia_id: string
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          barbearia_id: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          barbearia_id?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clientes_barbearia_id_fkey"
+            columns: ["barbearia_id"]
+            isOneToOne: false
+            referencedRelation: "barbearias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          barbearia_id: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          barbearia_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          barbearia_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_barbearia_id_fkey"
+            columns: ["barbearia_id"]
+            isOneToOne: false
+            referencedRelation: "barbearias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      servicos: {
+        Row: {
+          ativo: boolean | null
+          barbearia_id: string
+          created_at: string | null
+          duracao: number
+          id: string
+          nome: string
+          preco: number
+        }
+        Insert: {
+          ativo?: boolean | null
+          barbearia_id: string
+          created_at?: string | null
+          duracao: number
+          id?: string
+          nome: string
+          preco: number
+        }
+        Update: {
+          ativo?: boolean | null
+          barbearia_id?: string
+          created_at?: string | null
+          duracao?: number
+          id?: string
+          nome?: string
+          preco?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "servicos_barbearia_id_fkey"
+            columns: ["barbearia_id"]
+            isOneToOne: false
+            referencedRelation: "barbearias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      barbeiro_has_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
+      get_barbeiro_id: { Args: { _user_id: string }; Returns: string }
+      get_user_barbearia_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "barbeiro"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +526,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "barbeiro"],
+    },
   },
 } as const
