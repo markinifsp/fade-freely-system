@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { agendamentos as mockAg, barbeiros, servicos, clientes, Agendamento, StatusAgendamento } from "@/lib/mock-data";
-import { Calendar, Plus, Filter, Check, X, Clock } from "lucide-react";
+import { useAgendamentos, useBarbeiros, useServicos, useClientes, useCreateAgendamento, useUpdateAgendamentoStatus } from "@/hooks/useSupabaseData";
+import { Calendar, Plus, Filter, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,59 +21,45 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function Agendamentos() {
-  const [lista, setLista] = useState<Agendamento[]>(mockAg);
-  const [filtroBarbeiro, setFiltroBarbeiro] = useState<string>("todos");
-  const [filtroStatus, setFiltroStatus] = useState<string>("todos");
+  const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
+  const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     clienteId: "", barbeiroId: "", servicoId: "", data: new Date().toISOString().split("T")[0], hora: "09:00"
   });
 
-  const filtrados = lista.filter((a) => {
-    if (filtroBarbeiro !== "todos" && a.barbeiroId !== filtroBarbeiro) return false;
+  const { data: agendamentos = [], isLoading } = useAgendamentos();
+  const { data: barbeiros = [] } = useBarbeiros();
+  const { data: servicos = [] } = useServicos();
+  const { data: clientes = [] } = useClientes();
+  const createAg = useCreateAgendamento();
+  const updateStatus = useUpdateAgendamentoStatus();
+
+  const filtrados = agendamentos.filter(a => {
+    if (filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
     if (filtroStatus !== "todos" && a.status !== filtroStatus) return false;
     return true;
-  }).sort((a, b) => a.hora.localeCompare(b.hora));
+  }).sort((a, b) => {
+    const dateComp = (a.data || "").localeCompare(b.data || "");
+    if (dateComp !== 0) return dateComp;
+    return (a.hora || "").localeCompare(b.hora || "");
+  });
 
   const handleCriar = () => {
-    const cliente = clientes.find(c => c.id === formData.clienteId);
-    const barbeiro = barbeiros.find(b => b.id === formData.barbeiroId);
     const servico = servicos.find(s => s.id === formData.servicoId);
-    if (!cliente || !barbeiro || !servico) return;
+    if (!formData.clienteId || !formData.barbeiroId || !servico) return;
 
-    // Check conflict
-    const conflict = lista.some(a =>
-      a.barbeiroId === formData.barbeiroId &&
-      a.data === formData.data &&
-      a.hora === formData.hora &&
-      a.status !== 'cancelado'
-    );
-    if (conflict) {
-      alert("Horário já ocupado para este barbeiro!");
-      return;
-    }
-
-    const novo: Agendamento = {
-      id: String(Date.now()),
-      clienteId: cliente.id,
-      clienteNome: cliente.nome,
-      barbeiroId: barbeiro.id,
-      barbeiroNome: barbeiro.nome,
-      servicoId: servico.id,
-      servicoNome: servico.nome,
+    createAg.mutate({
+      cliente_id: formData.clienteId,
+      barbeiro_id: formData.barbeiroId,
+      servico_id: formData.servicoId,
       data: formData.data,
       hora: formData.hora,
       duracao: servico.duracao,
       preco: servico.preco,
-      status: 'confirmado',
-      criadoEm: new Date().toISOString().split("T")[0],
-    };
-    setLista([...lista, novo]);
-    setDialogOpen(false);
-  };
-
-  const updateStatus = (id: string, status: StatusAgendamento) => {
-    setLista(lista.map(a => a.id === id ? { ...a, status } : a));
+    }, {
+      onSuccess: () => setDialogOpen(false),
+    });
   };
 
   return (
@@ -90,9 +76,7 @@ export default function Agendamentos() {
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
-            <DialogHeader>
-              <DialogTitle className="font-display">Novo Agendamento</DialogTitle>
-            </DialogHeader>
+            <DialogHeader><DialogTitle className="font-display">Novo Agendamento</DialogTitle></DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Cliente</Label>
@@ -105,35 +89,28 @@ export default function Agendamentos() {
                 <Label>Barbeiro</Label>
                 <Select value={formData.barbeiroId} onValueChange={v => setFormData({...formData, barbeiroId: v})}>
                   <SelectTrigger><SelectValue placeholder="Selecionar barbeiro" /></SelectTrigger>
-                  <SelectContent>{barbeiros.filter(b=>b.ativo).map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}</SelectContent>
+                  <SelectContent>{barbeiros.filter(b => b.ativo).map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Serviço</Label>
                 <Select value={formData.servicoId} onValueChange={v => setFormData({...formData, servicoId: v})}>
                   <SelectTrigger><SelectValue placeholder="Selecionar serviço" /></SelectTrigger>
-                  <SelectContent>{servicos.filter(s=>s.ativo).map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - R${s.preco}</SelectItem>)}</SelectContent>
+                  <SelectContent>{servicos.filter(s => s.ativo).map(s => <SelectItem key={s.id} value={s.id}>{s.nome} - R${s.preco}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label>Data</Label>
-                  <Input type="date" value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                  <Label>Hora</Label>
-                  <Input type="time" value={formData.hora} onChange={e => setFormData({...formData, hora: e.target.value})} />
-                </div>
+                <div className="space-y-2"><Label>Data</Label><Input type="date" value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} /></div>
+                <div className="space-y-2"><Label>Hora</Label><Input type="time" value={formData.hora} onChange={e => setFormData({...formData, hora: e.target.value})} /></div>
               </div>
-              <Button onClick={handleCriar} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90">
-                Criar Agendamento
+              <Button onClick={handleCriar} disabled={createAg.isPending} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90">
+                {createAg.isPending ? "Criando..." : "Criar Agendamento"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <Filter className="w-4 h-4 text-muted-foreground" />
         <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
@@ -154,9 +131,10 @@ export default function Agendamentos() {
         </Select>
       </div>
 
-      {/* List */}
       <div className="space-y-3">
-        {filtrados.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12 text-muted-foreground">Carregando...</div>
+        ) : filtrados.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Calendar className="w-12 h-12 mx-auto mb-3 opacity-40" />
             <p>Nenhum agendamento encontrado.</p>
@@ -172,25 +150,26 @@ export default function Agendamentos() {
             >
               <div className="flex items-center gap-3 flex-1 min-w-0">
                 <div className="w-14 text-center flex-shrink-0">
-                  <p className="text-lg font-bold text-primary">{ag.hora}</p>
+                  <p className="text-lg font-bold text-primary">{ag.hora?.substring(0, 5)}</p>
                   <p className="text-[10px] text-muted-foreground">{ag.duracao}min</p>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground truncate">{ag.clienteNome}</p>
-                  <p className="text-xs text-muted-foreground truncate">{ag.servicoNome} • {ag.barbeiroNome}</p>
+                  <p className="text-sm font-semibold text-foreground truncate">{(ag.clientes as any)?.nome || "—"}</p>
+                  <p className="text-xs text-muted-foreground truncate">{(ag.servicos as any)?.nome} • {(ag.barbeiros as any)?.nome}</p>
+                  <p className="text-[10px] text-muted-foreground">{ag.data}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 justify-between sm:justify-end">
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${statusColors[ag.status]}`}>
-                  {statusLabels[ag.status]}
+                <span className={`text-xs px-2.5 py-1 rounded-full font-medium border ${statusColors[ag.status || "confirmado"]}`}>
+                  {statusLabels[ag.status || "confirmado"]}
                 </span>
                 <p className="text-sm font-semibold text-foreground">R$ {ag.preco}</p>
                 {ag.status === "confirmado" && (
                   <div className="flex gap-1 ml-2">
-                    <button onClick={() => updateStatus(ag.id, "concluido")} className="w-7 h-7 rounded-md bg-success/20 text-success hover:bg-success/30 flex items-center justify-center transition-colors">
+                    <button onClick={() => updateStatus.mutate({ id: ag.id, status: "concluido" })} className="w-7 h-7 rounded-md bg-success/20 text-success hover:bg-success/30 flex items-center justify-center transition-colors">
                       <Check className="w-3.5 h-3.5" />
                     </button>
-                    <button onClick={() => updateStatus(ag.id, "cancelado")} className="w-7 h-7 rounded-md bg-destructive/20 text-destructive hover:bg-destructive/30 flex items-center justify-center transition-colors">
+                    <button onClick={() => updateStatus.mutate({ id: ag.id, status: "cancelado" })} className="w-7 h-7 rounded-md bg-destructive/20 text-destructive hover:bg-destructive/30 flex items-center justify-center transition-colors">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>

@@ -1,15 +1,18 @@
 import {
   LayoutDashboard,
   Calendar,
+  CalendarDays,
   Scissors,
   Users,
   UserCircle,
   DollarSign,
   Settings,
   Menu,
+  LogOut,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -22,21 +25,28 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
 
-const menuItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Agendamentos", url: "/agendamentos", icon: Calendar },
-  { title: "Barbeiros", url: "/barbeiros", icon: Scissors },
-  { title: "Serviços", url: "/servicos", icon: Menu },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Financeiro", url: "/financeiro", icon: DollarSign },
-  { title: "Configurações", url: "/configuracoes", icon: Settings },
+const allMenuItems = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, roles: ["admin", "barbeiro"] },
+  { title: "Agendamentos", url: "/agendamentos", icon: Calendar, roles: ["admin", "barbeiro"] },
+  { title: "Calendário", url: "/calendario", icon: CalendarDays, roles: ["admin", "barbeiro"] },
+  { title: "Barbeiros", url: "/barbeiros", icon: Scissors, roles: ["admin"] },
+  { title: "Serviços", url: "/servicos", icon: Menu, roles: ["admin"] },
+  { title: "Clientes", url: "/clientes", icon: Users, roles: ["admin", "barbeiro"] },
+  { title: "Financeiro", url: "/financeiro", icon: DollarSign, roles: ["admin", "barbeiro"] },
+  { title: "Configurações", url: "/configuracoes", icon: Settings, roles: ["admin"] },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const { role, profile, signOut } = useAuth();
+
+  const menuItems = allMenuItems.filter(item =>
+    !role || item.roles.includes(role)
+  );
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">
@@ -90,18 +100,23 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-border">
+      <SidebarFooter className="p-4 border-t border-border space-y-2">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
             <UserCircle className="w-5 h-5 text-muted-foreground" />
           </div>
           {!collapsed && (
-            <div>
-              <p className="text-sm font-medium text-foreground">Admin</p>
-              <p className="text-xs text-muted-foreground">Proprietário</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{profile?.nome || "Usuário"}</p>
+              <p className="text-xs text-muted-foreground capitalize">{role || "..."}</p>
             </div>
           )}
         </div>
+        {!collapsed && (
+          <Button variant="outline" size="sm" className="w-full text-xs" onClick={signOut}>
+            <LogOut className="w-3 h-3 mr-1.5" /> Sair
+          </Button>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
