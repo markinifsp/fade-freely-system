@@ -20,10 +20,17 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller is using service_role key
+    // Verify caller using supabase admin client
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
     const token = authHeader.replace("Bearer ", "");
-    if (token !== serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Forbidden - service role key required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { data: { user: caller }, error: callerError } = await supabaseAdmin.auth.getUser(token);
+    if (callerError || !caller) {
+      // Allow service_role key directly
+      if (token !== serviceRoleKey) {
+        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     const { email, password, nome, nomeBarbearia } = await req.json();
