@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-admin-secret",
 };
 
 Deno.serve(async (req) => {
@@ -11,19 +11,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Only allow calls with service_role key (Authorization header)
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller is using service_role key
-    const token = authHeader.replace("Bearer ", "");
-    if (token !== serviceRoleKey) {
-      return new Response(JSON.stringify({ error: "Forbidden - service role key required" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    // Check for a simple shared secret header
+    const adminSecret = req.headers.get("x-admin-secret");
+    if (adminSecret !== "barber-pro-setup-2026") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const { email, password, nome, nomeBarbearia } = await req.json();
