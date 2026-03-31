@@ -1,7 +1,8 @@
 import { Calendar, DollarSign, Users, TrendingUp, Scissors } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
-import { useAgendamentos, useBarbeiros } from "@/hooks/useSupabaseData";
+import { useAgendamentos, useBarbeiros, useServicos } from "@/hooks/useSupabaseData";
 import { motion } from "framer-motion";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const statusColors: Record<string, string> = {
   confirmado: "bg-info/20 text-info",
@@ -15,10 +16,21 @@ const statusLabels: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
+const CHART_COLORS = [
+  "hsl(var(--primary))",
+  "hsl(var(--accent))",
+  "hsl(var(--info))",
+  "hsl(var(--success))",
+  "hsl(var(--warning, 45 93% 47%))",
+  "hsl(var(--destructive))",
+];
+
 export default function Dashboard() {
   const today = new Date().toISOString().split("T")[0];
   const { data: agendamentos = [] } = useAgendamentos(today);
+  const { data: allAg = [] } = useAgendamentos();
   const { data: barbeiros = [] } = useBarbeiros();
+  const { data: servicos = [] } = useServicos();
 
   const agHoje = agendamentos;
   const confirmados = agHoje.filter(a => a.status === "confirmado");
@@ -26,6 +38,31 @@ export default function Dashboard() {
   const faturamento = agHoje.filter(a => a.status !== "cancelado").reduce((s, a) => s + Number(a.preco), 0);
 
   const proximos = confirmados.sort((a, b) => (a.hora || "").localeCompare(b.hora || "")).slice(0, 5);
+
+  // Last 7 days revenue chart
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toISOString().split("T")[0];
+  });
+  const fatPorDia = last7.map(date => {
+    const dayAgs = allAg.filter(a => a.data === date && a.status !== "cancelado");
+    return {
+      dia: new Date(date + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short" }),
+      valor: dayAgs.reduce((s, a) => s + Number(a.preco), 0),
+    };
+  });
+
+  // Popular services pie
+  const servicoCount: Record<string, number> = {};
+  allAg.filter(a => a.status !== "cancelado").forEach(a => {
+    const nome = (a.servicos as any)?.nome || "Outro";
+    servicoCount[nome] = (servicoCount[nome] || 0) + 1;
+  });
+  const servicoPie = Object.entries(servicoCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, value]) => ({ name, value }));
 
   return (
     <div className="space-y-6">
@@ -43,8 +80,55 @@ export default function Dashboard() {
         <StatCard title="Barbeiros Ativos" value={barbeiros.filter(b => b.ativo).length} icon={Users} />
       </div>
 
+      {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+          <h2 className="font-display text-lg font-semibold text-foreground mb-4">Faturamento — Últimos 7 dias</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={fatPorDia} barSize={28}>
+              <XAxis dataKey="dia" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={v => `R$${v}`} />
+              <Tooltip
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
+                formatter={(v: number) => [`R$ ${v}`, "Faturamento"]}
+              />
+              <Bar dataKey="valor" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+          <h2 className="font-display text-lg font-semibold text-foreground mb-4">Serviços Mais Populares</h2>
+          {servicoPie.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
+          ) : (
+            <div className="flex items-center gap-4">
+              <ResponsiveContainer width="50%" height={200}>
+                <PieChart>
+                  <Pie data={servicoPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} strokeWidth={2} stroke="hsl(var(--card))">
+                    {servicoPie.map((_, i) => (
+                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex-1 space-y-2">
+                {servicoPie.map((s, i) => (
+                  <div key={s.name} className="flex items-center gap-2 text-sm">
+                    <span className="w-3 h-3 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
+                    <span className="text-foreground truncate">{s.name}</span>
+                    <span className="ml-auto text-muted-foreground">{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
           <div className="p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-foreground">Próximos Horários</h2>
           </div>
