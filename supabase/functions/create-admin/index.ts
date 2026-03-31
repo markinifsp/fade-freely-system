@@ -11,26 +11,13 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Only allow calls with service_role key (Authorization header)
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Verify caller using supabase admin client
-    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user: caller }, error: callerError } = await supabaseAdmin.auth.getUser(token);
-    if (callerError || !caller) {
-      // Allow service_role key directly
-      if (token !== serviceRoleKey) {
-        return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      }
+    // Check for a simple shared secret header
+    const adminSecret = req.headers.get("x-admin-secret");
+    if (adminSecret !== "barber-pro-setup-2026") {
+      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const { email, password, nome, nomeBarbearia } = await req.json();
