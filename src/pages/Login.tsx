@@ -7,9 +7,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function Login() {
-  const [isRegister, setIsRegister] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "", nome: "", nomeBarbearia: "" });
+  const [form, setForm] = useState({ email: "", password: "" });
 
   const handleLogin = async () => {
     setLoading(true);
@@ -18,54 +17,6 @@ export default function Login() {
       password: form.password,
     });
     if (error) toast.error(error.message);
-    setLoading(false);
-  };
-
-  const handleRegister = async () => {
-    if (!form.nome.trim() || !form.nomeBarbearia.trim()) {
-      toast.error("Preencha todos os campos");
-      return;
-    }
-    setLoading(true);
-
-    // 1. Sign up user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { nome: form.nome } },
-    });
-    if (authError || !authData.user) {
-      toast.error(authError?.message || "Erro ao criar conta");
-      setLoading(false);
-      return;
-    }
-
-    // 2. Create barbearia
-    const { data: barbearia, error: barbError } = await supabase
-      .from("barbearias")
-      .insert({ nome: form.nomeBarbearia })
-      .select()
-      .single();
-
-    if (barbError || !barbearia) {
-      toast.error("Erro ao criar barbearia");
-      setLoading(false);
-      return;
-    }
-
-    // 3. Update profile with barbearia_id
-    await supabase
-      .from("profiles")
-      .update({ barbearia_id: barbearia.id, nome: form.nome })
-      .eq("id", authData.user.id);
-
-    // 4. Assign admin role
-    await supabase
-      .from("user_roles")
-      .insert({ user_id: authData.user.id, role: "admin" });
-
-    toast.success("Conta criada com sucesso! Faça login.");
-    setIsRegister(false);
     setLoading(false);
   };
 
@@ -81,22 +32,7 @@ export default function Login() {
         </div>
 
         <div className="bg-card border border-border rounded-xl p-6 space-y-4 shadow-card">
-          <h2 className="font-display text-xl font-semibold text-foreground text-center">
-            {isRegister ? "Criar Conta" : "Entrar"}
-          </h2>
-
-          {isRegister && (
-            <>
-              <div className="space-y-2">
-                <Label>Seu Nome</Label>
-                <Input value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} placeholder="Seu nome completo" />
-              </div>
-              <div className="space-y-2">
-                <Label>Nome da Barbearia</Label>
-                <Input value={form.nomeBarbearia} onChange={e => setForm({...form, nomeBarbearia: e.target.value})} placeholder="Ex: BarberShop Premium" />
-              </div>
-            </>
-          )}
+          <h2 className="font-display text-xl font-semibold text-foreground text-center">Entrar</h2>
 
           <div className="space-y-2">
             <Label>Email</Label>
@@ -104,23 +40,16 @@ export default function Login() {
           </div>
           <div className="space-y-2">
             <Label>Senha</Label>
-            <Input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" />
+            <Input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" onKeyDown={e => e.key === "Enter" && handleLogin()} />
           </div>
 
           <Button
-            onClick={isRegister ? handleRegister : handleLogin}
+            onClick={handleLogin}
             disabled={loading}
             className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold"
           >
-            {loading ? "Carregando..." : isRegister ? "Criar Conta" : "Entrar"}
+            {loading ? "Carregando..." : "Entrar"}
           </Button>
-
-          <p className="text-center text-sm text-muted-foreground">
-            {isRegister ? "Já tem conta?" : "Não tem conta?"}{" "}
-            <button onClick={() => setIsRegister(!isRegister)} className="text-primary hover:underline font-medium">
-              {isRegister ? "Fazer login" : "Criar conta"}
-            </button>
-          </p>
         </div>
       </div>
     </div>
