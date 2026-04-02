@@ -132,6 +132,9 @@ export default function Barbeiros() {
                     <Button variant="outline" size="sm" onClick={() => setCredDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
                       <Key className="w-3 h-3 mr-1" /> Credenciais
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => setBloqueioDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
+                      <CalendarOff className="w-3 h-3 mr-1" /> Bloqueios
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => deleteBarbeiro.mutate(barb.id)} className="text-xs border-border text-destructive hover:bg-destructive/10">
                       <Trash2 className="w-3 h-3" />
                     </Button>
