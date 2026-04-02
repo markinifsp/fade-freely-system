@@ -115,43 +115,51 @@ export function useBloqueios(barbeiroId?: string) {
 // Mutations
 export function useCreateBarbeiro() {
   const qc = useQueryClient();
-  const { barbeariaId } = useAuth();
   return useMutation({
-    mutationFn: async (data: { nome: string; telefone: string; email: string; comissao: number; horaInicio: string; horaFim: string }) => {
-      if (!barbeariaId) throw new Error("Sem barbearia");
-
-      // Create auth user for barbeiro
-      const tempPassword = Math.random().toString(36).slice(-8) + "A1!";
-      
-      // Insert barbeiro record
-      const { data: barbeiro, error } = await supabase
-        .from("barbeiros")
-        .insert({
-          barbearia_id: barbeariaId,
+    mutationFn: async (data: { nome: string; telefone: string; email: string; password: string; comissao: number; horaInicio: string; horaFim: string }) => {
+      const { data: result, error } = await supabase.functions.invoke("create-barbeiro", {
+        body: {
+          action: "create",
           nome: data.nome,
-          telefone: data.telefone,
           email: data.email,
+          password: data.password,
+          telefone: data.telefone,
           comissao: data.comissao,
-          hora_inicio: data.horaInicio,
-          hora_fim: data.horaFim,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-
-      // Create default permissions
-      await supabase.from("barbeiro_permissoes").insert({
-        barbeiro_id: barbeiro.id,
-        ver_agenda_outros: false,
-        ver_faturamento_total: false,
-        editar_propria_agenda: true,
+          horaInicio: data.horaInicio,
+          horaFim: data.horaFim,
+        },
       });
-
-      return barbeiro;
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+      return result;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["barbeiros"] });
-      toast.success("Barbeiro cadastrado!");
+      toast.success("Barbeiro cadastrado com acesso!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+}
+
+export function useUpdateBarbeiroCredentials() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { barbeiroId: string; email?: string; password?: string }) => {
+      const { data: result, error } = await supabase.functions.invoke("create-barbeiro", {
+        body: {
+          action: "update_credentials",
+          barbeiroId: data.barbeiroId,
+          email: data.email,
+          password: data.password,
+        },
+      });
+      if (error) throw error;
+      if (result?.error) throw new Error(result.error);
+      return result;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["barbeiros"] });
+      toast.success("Credenciais atualizadas!");
     },
     onError: (e) => toast.error(e.message),
   });
