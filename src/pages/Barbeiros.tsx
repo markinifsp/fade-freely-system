@@ -121,9 +121,12 @@ export default function Barbeiros() {
                   ))}
                 </div>
                 {isAdmin && (
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-2 pt-1 flex-wrap">
                     <Button variant="outline" size="sm" onClick={() => setPermDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
                       <Shield className="w-3 h-3 mr-1" /> Permissões
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setCredDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
+                      <Key className="w-3 h-3 mr-1" /> Credenciais
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => deleteBarbeiro.mutate(barb.id)} className="text-xs border-border text-destructive hover:bg-destructive/10">
                       <Trash2 className="w-3 h-3" />
