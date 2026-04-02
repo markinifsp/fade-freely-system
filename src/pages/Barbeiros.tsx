@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useBarbeiros, useCreateBarbeiro, useUpdateBarbeiro, useDeleteBarbeiro, useUpdateBarbeiroPermissoes } from "@/hooks/useSupabaseData";
+import { useBarbeiros, useCreateBarbeiro, useUpdateBarbeiro, useDeleteBarbeiro, useUpdateBarbeiroPermissoes, useUpdateBarbeiroCredentials } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Scissors, Phone, Mail, Percent, Edit2, Trash2, Shield } from "lucide-react";
+import { Plus, Scissors, Phone, Mail, Percent, Edit2, Trash2, Shield, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -17,22 +17,24 @@ export default function Barbeiros() {
   const { data: lista = [], isLoading } = useBarbeiros();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [permDialogBarbeiro, setPermDialogBarbeiro] = useState<any>(null);
-  const [form, setForm] = useState({ nome: "", telefone: "", email: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
+  const [credDialogBarbeiro, setCredDialogBarbeiro] = useState<any>(null);
+  const [form, setForm] = useState({ nome: "", telefone: "", email: "", password: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
 
   const createBarbeiro = useCreateBarbeiro();
   const updateBarbeiro = useUpdateBarbeiro();
   const deleteBarbeiro = useDeleteBarbeiro();
   const updatePermissoes = useUpdateBarbeiroPermissoes();
+  const updateCredentials = useUpdateBarbeiroCredentials();
 
   const handleCriar = () => {
-    if (!form.nome.trim()) return;
+    if (!form.nome.trim() || !form.email.trim() || !form.password.trim()) return;
     createBarbeiro.mutate({
-      nome: form.nome, telefone: form.telefone, email: form.email,
+      nome: form.nome, telefone: form.telefone, email: form.email, password: form.password,
       comissao: Number(form.comissao), horaInicio: form.horaInicio, horaFim: form.horaFim,
     }, {
       onSuccess: () => {
         setDialogOpen(false);
-        setForm({ nome: "", telefone: "", email: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
+        setForm({ nome: "", telefone: "", email: "", password: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
       },
     });
   };
@@ -63,7 +65,8 @@ export default function Barbeiros() {
                   <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} placeholder="(11) 99999-0000" /></div>
                   <div className="space-y-2"><Label>Comissão (%)</Label><Input type="number" value={form.comissao} onChange={e => setForm({...form, comissao: e.target.value})} /></div>
                 </div>
-                <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@exemplo.com" /></div>
+                <div className="space-y-2"><Label>Email (login)</Label><Input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@exemplo.com" /></div>
+                <div className="space-y-2"><Label>Senha</Label><Input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="Mínimo 6 caracteres" /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2"><Label>Hora Início</Label><Input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})} /></div>
                   <div className="space-y-2"><Label>Hora Fim</Label><Input type="time" value={form.horaFim} onChange={e => setForm({...form, horaFim: e.target.value})} /></div>
@@ -118,9 +121,12 @@ export default function Barbeiros() {
                   ))}
                 </div>
                 {isAdmin && (
-                  <div className="flex gap-2 pt-1">
+                  <div className="flex gap-2 pt-1 flex-wrap">
                     <Button variant="outline" size="sm" onClick={() => setPermDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
                       <Shield className="w-3 h-3 mr-1" /> Permissões
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setCredDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
+                      <Key className="w-3 h-3 mr-1" /> Credenciais
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => deleteBarbeiro.mutate(barb.id)} className="text-xs border-border text-destructive hover:bg-destructive/10">
                       <Trash2 className="w-3 h-3" />
@@ -144,6 +150,23 @@ export default function Barbeiros() {
                 updatePermissoes.mutate({ barbeiroId: permDialogBarbeiro.id, permissoes: perms });
                 setPermDialogBarbeiro(null);
               }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Credentials Dialog */}
+      <Dialog open={!!credDialogBarbeiro} onOpenChange={() => setCredDialogBarbeiro(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader><DialogTitle className="font-display">Credenciais — {credDialogBarbeiro?.nome}</DialogTitle></DialogHeader>
+          {credDialogBarbeiro && (
+            <CredenciaisForm
+              barbeiro={credDialogBarbeiro}
+              onSave={(creds) => {
+                updateCredentials.mutate({ barbeiroId: credDialogBarbeiro.id, ...creds });
+                setCredDialogBarbeiro(null);
+              }}
+              isPending={updateCredentials.isPending}
             />
           )}
         </DialogContent>
@@ -186,6 +209,35 @@ function PermissoesForm({ barbeiro, onSave }: { barbeiro: any; onSave: (p: any) 
         className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90"
       >
         Salvar Permissões
+      </Button>
+    </div>
+  );
+}
+
+function CredenciaisForm({ barbeiro, onSave, isPending }: { barbeiro: any; onSave: (c: { email?: string; password?: string }) => void; isPending: boolean }) {
+  const [email, setEmail] = useState(barbeiro.email || "");
+  const [password, setPassword] = useState("");
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="space-y-2">
+        <Label>Email de acesso</Label>
+        <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" />
+      </div>
+      <div className="space-y-2">
+        <Label>Nova senha</Label>
+        <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Deixe vazio para manter" />
+      </div>
+      <p className="text-xs text-muted-foreground">O barbeiro usará estes dados para fazer login no sistema.</p>
+      <Button
+        onClick={() => onSave({
+          email: email !== barbeiro.email ? email : undefined,
+          password: password || undefined,
+        })}
+        disabled={isPending || (!password && email === (barbeiro.email || ""))}
+        className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90"
+      >
+        {isPending ? "Salvando..." : "Atualizar Credenciais"}
       </Button>
     </div>
   );
