@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useBarbeiros, useCreateBarbeiro, useUpdateBarbeiro, useDeleteBarbeiro, useUpdateBarbeiroPermissoes } from "@/hooks/useSupabaseData";
+import { useBarbeiros, useCreateBarbeiro, useUpdateBarbeiro, useDeleteBarbeiro, useUpdateBarbeiroPermissoes, useUpdateBarbeiroCredentials } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
 import { Plus, Scissors, Phone, Mail, Percent, Edit2, Trash2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
