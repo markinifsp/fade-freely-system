@@ -24,6 +24,7 @@ export default function Barbeiros() {
   const updateBarbeiro = useUpdateBarbeiro();
   const deleteBarbeiro = useDeleteBarbeiro();
   const updatePermissoes = useUpdateBarbeiroPermissoes();
+  const updateCredentials = useUpdateBarbeiroCredentials();
 
   const handleCriar = () => {
     if (!form.nome.trim()) return;
