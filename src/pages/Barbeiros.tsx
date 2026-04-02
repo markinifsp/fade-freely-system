@@ -17,7 +17,8 @@ export default function Barbeiros() {
   const { data: lista = [], isLoading } = useBarbeiros();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [permDialogBarbeiro, setPermDialogBarbeiro] = useState<any>(null);
-  const [form, setForm] = useState({ nome: "", telefone: "", email: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
+  const [credDialogBarbeiro, setCredDialogBarbeiro] = useState<any>(null);
+  const [form, setForm] = useState({ nome: "", telefone: "", email: "", password: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
 
   const createBarbeiro = useCreateBarbeiro();
   const updateBarbeiro = useUpdateBarbeiro();
