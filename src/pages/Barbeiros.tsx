@@ -65,7 +65,8 @@ export default function Barbeiros() {
                   <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})} placeholder="(11) 99999-0000" /></div>
                   <div className="space-y-2"><Label>Comissão (%)</Label><Input type="number" value={form.comissao} onChange={e => setForm({...form, comissao: e.target.value})} /></div>
                 </div>
-                <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@exemplo.com" /></div>
+                <div className="space-y-2"><Label>Email (login)</Label><Input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@exemplo.com" /></div>
+                <div className="space-y-2"><Label>Senha</Label><Input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="Mínimo 6 caracteres" /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2"><Label>Hora Início</Label><Input type="time" value={form.horaInicio} onChange={e => setForm({...form, horaInicio: e.target.value})} /></div>
                   <div className="space-y-2"><Label>Hora Fim</Label><Input type="time" value={form.horaFim} onChange={e => setForm({...form, horaFim: e.target.value})} /></div>
