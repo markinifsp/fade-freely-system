@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useBarbeiros, useCreateBarbeiro, useUpdateBarbeiro, useDeleteBarbeiro, useUpdateBarbeiroPermissoes, useUpdateBarbeiroCredentials } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { Plus, Scissors, Phone, Mail, Percent, Edit2, Trash2, Shield } from "lucide-react";
+import { Plus, Scissors, Phone, Mail, Percent, Edit2, Trash2, Shield, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
