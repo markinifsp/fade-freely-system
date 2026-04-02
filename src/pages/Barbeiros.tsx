@@ -154,6 +154,23 @@ export default function Barbeiros() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Credentials Dialog */}
+      <Dialog open={!!credDialogBarbeiro} onOpenChange={() => setCredDialogBarbeiro(null)}>
+        <DialogContent className="bg-card border-border">
+          <DialogHeader><DialogTitle className="font-display">Credenciais — {credDialogBarbeiro?.nome}</DialogTitle></DialogHeader>
+          {credDialogBarbeiro && (
+            <CredenciaisForm
+              barbeiro={credDialogBarbeiro}
+              onSave={(creds) => {
+                updateCredentials.mutate({ barbeiroId: credDialogBarbeiro.id, ...creds });
+                setCredDialogBarbeiro(null);
+              }}
+              isPending={updateCredentials.isPending}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
