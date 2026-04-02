@@ -213,3 +213,32 @@ function PermissoesForm({ barbeiro, onSave }: { barbeiro: any; onSave: (p: any) 
     </div>
   );
 }
+
+function CredenciaisForm({ barbeiro, onSave, isPending }: { barbeiro: any; onSave: (c: { email?: string; password?: string }) => void; isPending: boolean }) {
+  const [email, setEmail] = useState(barbeiro.email || "");
+  const [password, setPassword] = useState("");
+
+  return (
+    <div className="space-y-4 pt-2">
+      <div className="space-y-2">
+        <Label>Email de acesso</Label>
+        <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@exemplo.com" />
+      </div>
+      <div className="space-y-2">
+        <Label>Nova senha</Label>
+        <Input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Deixe vazio para manter" />
+      </div>
+      <p className="text-xs text-muted-foreground">O barbeiro usará estes dados para fazer login no sistema.</p>
+      <Button
+        onClick={() => onSave({
+          email: email !== barbeiro.email ? email : undefined,
+          password: password || undefined,
+        })}
+        disabled={isPending || (!password && email === (barbeiro.email || ""))}
+        className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90"
+      >
+        {isPending ? "Salvando..." : "Atualizar Credenciais"}
+      </Button>
+    </div>
+  );
+}
