@@ -178,6 +178,16 @@ export default function Barbeiros() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Bloqueios Dialog */}
+      <Dialog open={!!bloqueioDialogBarbeiro} onOpenChange={() => setBloqueioDialogBarbeiro(null)}>
+        <DialogContent className="bg-card border-border max-w-lg">
+          <DialogHeader><DialogTitle className="font-display">Bloqueios — {bloqueioDialogBarbeiro?.nome}</DialogTitle></DialogHeader>
+          {bloqueioDialogBarbeiro && (
+            <BloqueiosForm barbeiro={bloqueioDialogBarbeiro} />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
