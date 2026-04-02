@@ -259,3 +259,98 @@ function CredenciaisForm({ barbeiro, onSave, isPending }: { barbeiro: any; onSav
     </div>
   );
 }
+
+function BloqueiosForm({ barbeiro }: { barbeiro: any }) {
+  const { data: bloqueios = [], isLoading } = useBloqueios(barbeiro.id);
+  const createBloqueio = useCreateBloqueio();
+  const deleteBloqueio = useDeleteBloqueio();
+
+  const [data, setData] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [diaInteiro, setDiaInteiro] = useState(true);
+  const [horaInicio, setHoraInicio] = useState("09:00");
+  const [horaFim, setHoraFim] = useState("18:00");
+  const [motivo, setMotivo] = useState("");
+
+  const handleAdd = () => {
+    createBloqueio.mutate({
+      barbeiro_id: barbeiro.id,
+      data,
+      dia_inteiro: diaInteiro,
+      hora_inicio: diaInteiro ? undefined : horaInicio,
+      hora_fim: diaInteiro ? undefined : horaFim,
+      motivo: motivo || undefined,
+    }, {
+      onSuccess: () => setMotivo(""),
+    });
+  };
+
+  return (
+    <div className="space-y-4 pt-2 max-h-[70vh] overflow-y-auto">
+      {/* Add block form */}
+      <div className="space-y-3 p-3 bg-secondary/30 rounded-lg">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <Label className="text-xs">Data</Label>
+            <Input type="date" value={data} onChange={e => setData(e.target.value)} />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Motivo (opcional)</Label>
+            <Input value={motivo} onChange={e => setMotivo(e.target.value)} placeholder="Ex: Folga" />
+          </div>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Switch checked={diaInteiro} onCheckedChange={setDiaInteiro} />
+            <Label className="text-sm">Dia inteiro</Label>
+          </div>
+        </div>
+        {!diaInteiro && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-xs">Hora início</Label>
+              <Input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Hora fim</Label>
+              <Input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} />
+            </div>
+          </div>
+        )}
+        <Button onClick={handleAdd} disabled={createBloqueio.isPending} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90" size="sm">
+          <CalendarOff className="w-3.5 h-3.5 mr-1" />
+          {createBloqueio.isPending ? "Adicionando..." : "Adicionar Bloqueio"}
+        </Button>
+      </div>
+
+      {/* Existing blocks list */}
+      {isLoading ? (
+        <p className="text-sm text-muted-foreground text-center">Carregando...</p>
+      ) : bloqueios.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">Nenhum bloqueio cadastrado</p>
+      ) : (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground">Bloqueios ativos:</p>
+          {bloqueios.map((b: any) => {
+            const dateObj = new Date(b.data + "T12:00:00");
+            return (
+              <div key={b.id} className="flex items-center justify-between p-2.5 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {format(dateObj, "dd/MM/yyyy (EEEE)", { locale: ptBR })}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {b.dia_inteiro ? "Dia inteiro" : `${b.hora_inicio?.substring(0, 5)} - ${b.hora_fim?.substring(0, 5)}`}
+                    {b.motivo && ` • ${b.motivo}`}
+                  </p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/20" onClick={() => deleteBloqueio.mutate(b.id)}>
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
