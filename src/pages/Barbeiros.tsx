@@ -27,14 +27,14 @@ export default function Barbeiros() {
   const updateCredentials = useUpdateBarbeiroCredentials();
 
   const handleCriar = () => {
-    if (!form.nome.trim()) return;
+    if (!form.nome.trim() || !form.email.trim() || !form.password.trim()) return;
     createBarbeiro.mutate({
-      nome: form.nome, telefone: form.telefone, email: form.email,
+      nome: form.nome, telefone: form.telefone, email: form.email, password: form.password,
       comissao: Number(form.comissao), horaInicio: form.horaInicio, horaFim: form.horaFim,
     }, {
       onSuccess: () => {
         setDialogOpen(false);
-        setForm({ nome: "", telefone: "", email: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
+        setForm({ nome: "", telefone: "", email: "", password: "", comissao: "40", horaInicio: "09:00", horaFim: "18:00" });
       },
     });
   };
