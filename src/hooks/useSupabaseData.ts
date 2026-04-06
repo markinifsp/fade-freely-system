@@ -77,6 +77,43 @@ export function useAgendamentos(date?: string) {
   });
 }
 
+export function useAgendamentosByRange(startDate?: string, endDate?: string) {
+  const { barbeariaId } = useAuth();
+  return useQuery({
+    queryKey: ["agendamentos-range", barbeariaId, startDate, endDate],
+    queryFn: async () => {
+      if (!barbeariaId || !startDate || !endDate) return [];
+      const { data, error } = await supabase
+        .from("agendamentos")
+        .select("*, barbeiros(nome), clientes(nome), servicos(nome)")
+        .eq("barbearia_id", barbeariaId)
+        .gte("data", startDate)
+        .lte("data", endDate)
+        .order("hora");
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!barbeariaId && !!startDate && !!endDate,
+  });
+}
+
+export function useBloqueiosByBarbeiroDate(barbeiroId?: string, date?: string) {
+  return useQuery({
+    queryKey: ["bloqueios-check", barbeiroId, date],
+    queryFn: async () => {
+      if (!barbeiroId || !date) return [];
+      const { data, error } = await supabase
+        .from("barbeiro_bloqueios")
+        .select("*")
+        .eq("barbeiro_id", barbeiroId)
+        .eq("data", date);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!barbeiroId && !!date,
+  });
+}
+
 export function useBarbearia() {
   const { barbeariaId } = useAuth();
   return useQuery({

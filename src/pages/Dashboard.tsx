@@ -1,8 +1,13 @@
+import { useState } from "react";
 import { Calendar, DollarSign, Users, TrendingUp, Scissors } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
-import { useAgendamentos, useBarbeiros, useServicos } from "@/hooks/useSupabaseData";
+import { useAgendamentosByRange, useBarbeiros, useServicos } from "@/hooks/useSupabaseData";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { format, subDays, eachDayOfInterval, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const statusColors: Record<string, string> = {
   confirmado: "bg-info/20 text-info",
@@ -27,35 +32,40 @@ const CHART_COLORS = [
 
 export default function Dashboard() {
   const today = new Date().toISOString().split("T")[0];
-  const { data: agendamentos = [] } = useAgendamentos(today);
-  const { data: allAg = [] } = useAgendamentos();
+  const [startDate, setStartDate] = useState(format(subDays(new Date(), 6), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(today);
+
+  const { data: allAg = [] } = useAgendamentosByRange(startDate, endDate);
   const { data: barbeiros = [] } = useBarbeiros();
   const { data: servicos = [] } = useServicos();
 
-  const agHoje = agendamentos;
-  const confirmados = agHoje.filter(a => a.status === "confirmado");
-  const concluidos = agHoje.filter(a => a.status === "concluido");
-  const faturamento = agHoje.filter(a => a.status !== "cancelado").reduce((s, a) => s + Number(a.preco), 0);
+  const agOk = allAg.filter(a => a.status !== "cancelado");
+  const confirmados = allAg.filter(a => a.status === "confirmado");
+  const concluidos = allAg.filter(a => a.status === "concluido");
+  const faturamento = agOk.reduce((s, a) => s + Number(a.preco), 0);
 
-  const proximos = confirmados.sort((a, b) => (a.hora || "").localeCompare(b.hora || "")).slice(0, 5);
+  const proximos = confirmados.sort((a, b) => {
+    const dc = (a.data || "").localeCompare(b.data || "");
+    return dc !== 0 ? dc : (a.hora || "").localeCompare(b.hora || "");
+  }).slice(0, 5);
 
-  // Last 7 days revenue chart
-  const last7 = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
-    return d.toISOString().split("T")[0];
+  // Revenue per day in range
+  const days = eachDayOfInterval({
+    start: parseISO(startDate),
+    end: parseISO(endDate),
   });
-  const fatPorDia = last7.map(date => {
-    const dayAgs = allAg.filter(a => a.data === date && a.status !== "cancelado");
+  const fatPorDia = days.map(d => {
+    const dateStr = format(d, "yyyy-MM-dd");
+    const dayAgs = allAg.filter(a => a.data === dateStr && a.status !== "cancelado");
     return {
-      dia: new Date(date + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "short" }),
+      dia: format(d, days.length > 14 ? "dd/MM" : "EEE", { locale: ptBR }),
       valor: dayAgs.reduce((s, a) => s + Number(a.preco), 0),
     };
   });
 
   // Popular services pie
   const servicoCount: Record<string, number> = {};
-  allAg.filter(a => a.status !== "cancelado").forEach(a => {
+  agOk.forEach(a => {
     const nome = (a.servicos as any)?.nome || "Outro";
     servicoCount[nome] = (servicoCount[nome] || 0) + 1;
   });
@@ -66,27 +76,37 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Visão geral do dia — {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground mt-1">Visão geral do período selecionado</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">De</Label>
+            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Até</Label>
+            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Agendamentos" value={agHoje.length} subtitle="hoje" icon={Calendar} />
-        <StatCard title="Faturamento" value={`R$ ${faturamento}`} subtitle="previsto hoje" icon={DollarSign} highlight />
-        <StatCard title="Concluídos" value={concluidos.length} subtitle={`de ${agHoje.length} agendados`} icon={TrendingUp} />
+        <StatCard title="Agendamentos" value={allAg.length} subtitle="no período" icon={Calendar} />
+        <StatCard title="Faturamento" value={`R$ ${faturamento}`} subtitle="no período" icon={DollarSign} highlight />
+        <StatCard title="Concluídos" value={concluidos.length} subtitle={`de ${allAg.length} agendados`} icon={TrendingUp} />
         <StatCard title="Barbeiros Ativos" value={barbeiros.filter(b => b.ativo).length} icon={Users} />
       </div>
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
-          <h2 className="font-display text-lg font-semibold text-foreground mb-4">Faturamento — Últimos 7 dias</h2>
+          <h2 className="font-display text-lg font-semibold text-foreground mb-4">Faturamento por Dia</h2>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={fatPorDia} barSize={28}>
-              <XAxis dataKey="dia" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} />
+            <BarChart data={fatPorDia} barSize={days.length > 20 ? 12 : 28}>
+              <XAxis dataKey="dia" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={v => `R$${v}`} />
               <Tooltip
                 contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }}
@@ -140,6 +160,7 @@ export default function Dashboard() {
                 <div key={ag.id} className="p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors">
                   <div className="w-12 text-center">
                     <p className="text-lg font-bold text-primary">{ag.hora?.substring(0, 5)}</p>
+                    <p className="text-[10px] text-muted-foreground">{ag.data}</p>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{(ag.clientes as any)?.nome || "—"}</p>
@@ -156,12 +177,12 @@ export default function Dashboard() {
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-xl shadow-card">
           <div className="p-5 border-b border-border flex items-center justify-between">
-            <h2 className="font-display text-lg font-semibold text-foreground">Barbeiros Hoje</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground">Performance Barbeiros</h2>
             <Scissors className="w-5 h-5 text-muted-foreground" />
           </div>
           <div className="divide-y divide-border">
             {barbeiros.filter(b => b.ativo).map((barb) => {
-              const bAgs = agHoje.filter(a => a.barbeiro_id === barb.id && a.status !== "cancelado");
+              const bAgs = agOk.filter(a => a.barbeiro_id === barb.id);
               const bFat = bAgs.reduce((s, a) => s + Number(a.preco), 0);
               return (
                 <div key={barb.id} className="p-4 flex items-center gap-4 hover:bg-muted/30 transition-colors">

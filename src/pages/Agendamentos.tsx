@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useAgendamentos, useBarbeiros, useServicos, useClientes, useCreateAgendamento, useUpdateAgendamentoStatus } from "@/hooks/useSupabaseData";
-import { Calendar, Plus, Filter, Check, X } from "lucide-react";
+import { useAgendamentos, useBarbeiros, useServicos, useClientes, useCreateAgendamento, useUpdateAgendamentoStatus, useBloqueiosByBarbeiroDate } from "@/hooks/useSupabaseData";
+import { Calendar, Plus, Filter, Check, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +20,15 @@ const statusLabels: Record<string, string> = {
   cancelado: "Cancelado",
 };
 
+function isHoraBlocked(bloqueios: any[], hora: string): boolean {
+  return bloqueios.some(b => {
+    if (b.dia_inteiro) return true;
+    const start = b.hora_inicio?.substring(0, 5) || "00:00";
+    const end = b.hora_fim?.substring(0, 5) || "23:59";
+    return hora >= start && hora < end;
+  });
+}
+
 export default function Agendamentos() {
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -34,6 +43,14 @@ export default function Agendamentos() {
   const { data: clientes = [] } = useClientes();
   const createAg = useCreateAgendamento();
   const updateStatus = useUpdateAgendamentoStatus();
+  const { data: bloqueiosForForm = [] } = useBloqueiosByBarbeiroDate(
+    formData.barbeiroId || undefined,
+    formData.data || undefined
+  );
+
+  const horaBloqueada = formData.barbeiroId && formData.data && formData.hora
+    ? isHoraBlocked(bloqueiosForForm, formData.hora)
+    : false;
 
   const filtrados = agendamentos.filter(a => {
     if (filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
@@ -46,6 +63,7 @@ export default function Agendamentos() {
   });
 
   const handleCriar = () => {
+    if (horaBloqueada) return;
     const servico = servicos.find(s => s.id === formData.servicoId);
     if (!formData.clienteId || !formData.barbeiroId || !servico) return;
 
@@ -103,7 +121,13 @@ export default function Agendamentos() {
                 <div className="space-y-2"><Label>Data</Label><Input type="date" value={formData.data} onChange={e => setFormData({...formData, data: e.target.value})} /></div>
                 <div className="space-y-2"><Label>Hora</Label><Input type="time" value={formData.hora} onChange={e => setFormData({...formData, hora: e.target.value})} /></div>
               </div>
-              <Button onClick={handleCriar} disabled={createAg.isPending} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90">
+              {horaBloqueada && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  <span>Este barbeiro está com a agenda bloqueada neste horário/dia.</span>
+                </div>
+              )}
+              <Button onClick={handleCriar} disabled={createAg.isPending || horaBloqueada} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90">
                 {createAg.isPending ? "Criando..." : "Criar Agendamento"}
               </Button>
             </div>
