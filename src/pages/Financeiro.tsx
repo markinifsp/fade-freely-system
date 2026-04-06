@@ -1,9 +1,14 @@
-import { useAgendamentos, useBarbeiros } from "@/hooks/useSupabaseData";
+import { useState } from "react";
+import { useAgendamentosByRange, useBarbeiros } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
 import { DollarSign, TrendingUp, Users, Calendar } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { format, subDays, startOfMonth, eachDayOfInterval, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const CHART_COLORS = [
   "hsl(var(--primary))",
@@ -13,55 +18,71 @@ const CHART_COLORS = [
 ];
 
 export default function Financeiro() {
-  const today = new Date().toISOString().split("T")[0];
-  const { data: allAg = [] } = useAgendamentos();
-  const { data: agHoje = [] } = useAgendamentos(today);
+  const today = new Date();
+  const [startDate, setStartDate] = useState(format(startOfMonth(today), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(today, "yyyy-MM-dd"));
+
+  const { data: allAg = [] } = useAgendamentosByRange(startDate, endDate);
   const { data: barbeiros = [] } = useBarbeiros();
   const { role } = useAuth();
 
-  const thisMonth = today.substring(0, 7);
-  const agMes = allAg.filter(a => (a.data || "").startsWith(thisMonth) && a.status !== "cancelado");
-  const agHojeOk = agHoje.filter(a => a.status !== "cancelado");
+  const agOk = allAg.filter(a => a.status !== "cancelado");
+  const fatTotal = agOk.reduce((s, a) => s + Number(a.preco), 0);
 
-  const fatHoje = agHojeOk.reduce((s, a) => s + Number(a.preco), 0);
-  const fatMes = agMes.reduce((s, a) => s + Number(a.preco), 0);
-
-  // Daily revenue for current month (line chart)
-  const daysInMonth = new Date(parseInt(thisMonth.split("-")[0]), parseInt(thisMonth.split("-")[1]), 0).getDate();
-  const fatDiario = Array.from({ length: daysInMonth }, (_, i) => {
-    const day = String(i + 1).padStart(2, "0");
-    const date = `${thisMonth}-${day}`;
-    const val = allAg.filter(a => a.data === date && a.status !== "cancelado").reduce((s, a) => s + Number(a.preco), 0);
-    return { dia: i + 1, valor: val };
+  // Daily revenue line chart
+  const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
+  const fatDiario = days.map(d => {
+    const dateStr = format(d, "yyyy-MM-dd");
+    const val = allAg.filter(a => a.data === dateStr && a.status !== "cancelado").reduce((s, a) => s + Number(a.preco), 0);
+    return { dia: format(d, days.length > 20 ? "dd" : "dd/MM"), valor: val };
   });
 
-  // Barber performance (bar chart)
+  // Barber performance
   const barbPerf = barbeiros.filter(b => b.ativo).map(barb => {
-    const bAgs = agMes.filter(a => a.barbeiro_id === barb.id);
+    const bAgs = agOk.filter(a => a.barbeiro_id === barb.id);
     const fat = bAgs.reduce((s, a) => s + Number(a.preco), 0);
     const comissao = (fat * (barb.comissao || 0)) / 100;
     return { nome: barb.nome.split(" ")[0], faturamento: fat, comissao: Math.round(comissao), servicos: bAgs.length };
   });
 
+  // Today's appointments for the commission table
+  const todayStr = format(today, "yyyy-MM-dd");
+  const agHojeOk = allAg.filter(a => a.data === todayStr && a.status !== "cancelado");
+  const fatHoje = agHojeOk.reduce((s, a) => s + Number(a.preco), 0);
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Financeiro</h1>
-        <p className="text-sm text-muted-foreground mt-1">Acompanhe o faturamento e comissões</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Financeiro</h1>
+          <p className="text-sm text-muted-foreground mt-1">Acompanhe o faturamento e comissões</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">De</Label>
+            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground">Até</Label>
+            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Faturamento Hoje" value={`R$ ${fatHoje}`} icon={DollarSign} highlight />
-        <StatCard title="Faturamento Mês" value={`R$ ${fatMes}`} icon={TrendingUp} />
+        <StatCard title="Faturamento Período" value={`R$ ${fatTotal}`} icon={TrendingUp} />
         <StatCard title="Serviços Hoje" value={agHojeOk.length} icon={Calendar} />
-        <StatCard title="Serviços Mês" value={agMes.length} icon={Users} />
+        <StatCard title="Serviços Período" value={agOk.length} icon={Users} />
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">Faturamento Diário</h2>
-          <p className="text-xs text-muted-foreground mb-4">{new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</p>
+          <p className="text-xs text-muted-foreground mb-4">
+            {format(parseISO(startDate), "dd/MM/yyyy")} — {format(parseISO(endDate), "dd/MM/yyyy")}
+          </p>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={fatDiario}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -78,7 +99,7 @@ export default function Financeiro() {
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">Performance dos Barbeiros</h2>
-          <p className="text-xs text-muted-foreground mb-4">Faturamento e comissão no mês</p>
+          <p className="text-xs text-muted-foreground mb-4">Faturamento e comissão no período</p>
           {barbPerf.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem dados.</p>
           ) : (
@@ -101,11 +122,11 @@ export default function Financeiro() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
         <div className="p-5 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Comissões dos Barbeiros</h2>
-          <p className="text-xs text-muted-foreground mt-1">Baseado nos serviços realizados hoje</p>
+          <p className="text-xs text-muted-foreground mt-1">Baseado nos serviços do período</p>
         </div>
         <div className="divide-y divide-border">
           {barbeiros.filter(b => b.ativo).map(barb => {
-            const bAgs = agHojeOk.filter(a => a.barbeiro_id === barb.id);
+            const bAgs = agOk.filter(a => a.barbeiro_id === barb.id);
             const bFat = bAgs.reduce((s, a) => s + Number(a.preco), 0);
             const comissao = (bFat * (barb.comissao || 0)) / 100;
             return (
