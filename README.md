@@ -235,6 +235,21 @@ curl -X POST https://SEU_PROJETO.supabase.co/functions/v1/create-admin \
     "nome": "Seu Nome",
     "nomeBarbearia": "Nome da Barbearia"
   }'
+
+-------------------------------------------
+$headers = @{
+    "Content-Type" = "application/json"
+    "x-admin-secret" = "barber-pro-setup-2026"
+}
+
+$body = @{
+    email = "admin@admin"
+    password = "123456"
+    nome = "Marcos"
+    nomeBarbearia = "MarkinBarber"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "https://nkkihoqbuezqqgvjhssm.supabase.co/functions/v1/create-admin" -Method Post -Headers $headers -Body $body
 ```
 
 ### 6. Rodar o projeto
