@@ -62,10 +62,19 @@ export default function Calendario() {
     ? barbeirosAtivos
     : barbeirosAtivos.filter(b => b.id === filtroBarbeiro);
 
-  const getAgendamento = (barbeiroId: string, hora: string) => {
-    return agendamentos.find(a =>
-      a.barbeiro_id === barbeiroId && a.hora?.substring(0, 5) === hora && a.status !== "cancelado"
-    );
+  const toMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const getAgendamentosInSlot = (barbeiroId: string, hora: string) => {
+    const slotStart = toMinutes(hora);
+    const slotEnd = slotStart + 30;
+    return agendamentos.filter(a => {
+      if (a.barbeiro_id !== barbeiroId || a.status === "cancelado" || !a.hora) return false;
+      const agMin = toMinutes(a.hora.substring(0, 5));
+      return agMin >= slotStart && agMin < slotEnd;
+    });
   };
 
   const isBlocked = (barbeiroId: string, hora: string) => {
