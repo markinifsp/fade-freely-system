@@ -62,10 +62,19 @@ export default function Calendario() {
     ? barbeirosAtivos
     : barbeirosAtivos.filter(b => b.id === filtroBarbeiro);
 
-  const getAgendamento = (barbeiroId: string, hora: string) => {
-    return agendamentos.find(a =>
-      a.barbeiro_id === barbeiroId && a.hora?.substring(0, 5) === hora && a.status !== "cancelado"
-    );
+  const toMinutes = (t: string) => {
+    const [h, m] = t.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  const getAgendamentosInSlot = (barbeiroId: string, hora: string) => {
+    const slotStart = toMinutes(hora);
+    const slotEnd = slotStart + 30;
+    return agendamentos.filter(a => {
+      if (a.barbeiro_id !== barbeiroId || a.status === "cancelado" || !a.hora) return false;
+      const agMin = toMinutes(a.hora.substring(0, 5));
+      return agMin >= slotStart && agMin < slotEnd;
+    });
   };
 
   const isBlocked = (barbeiroId: string, hora: string) => {
@@ -163,23 +172,32 @@ export default function Calendario() {
                   {hora}
                 </div>
                 {filteredBarbeiros.map(b => {
-                  const ag = getAgendamento(b.id, hora);
+                  const ags = getAgendamentosInSlot(b.id, hora);
                   const blocked = isBlocked(b.id, hora);
+                  const slotStart = toMinutes(hora);
                   return (
-                    <div key={b.id} className={`p-1 border-r border-border/30 last:border-r-0 min-h-[40px] ${blocked && !ag ? "bg-destructive/5" : ""}`}>
-                      {ag ? (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className={`rounded-lg p-1.5 text-[10px] leading-tight border-l-2 ${statusColors[ag.status || "confirmado"]}`}
-                        >
-                          <p className="font-semibold text-foreground truncate">
-                            {(ag.clientes as any)?.nome || "Cliente"}
-                          </p>
-                          <p className="text-muted-foreground truncate">
-                            {(ag.servicos as any)?.nome} • {ag.duracao}min
-                          </p>
-                        </motion.div>
+                    <div key={b.id} className={`p-1 border-r border-border/30 last:border-r-0 min-h-[40px] space-y-1 ${blocked && ags.length === 0 ? "bg-destructive/5" : ""}`}>
+                      {ags.length > 0 ? (
+                        ags.map(ag => {
+                          const agMin = toMinutes(ag.hora!.substring(0, 5));
+                          const offset = agMin - slotStart;
+                          return (
+                            <motion.div
+                              key={ag.id}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className={`rounded-lg p-1.5 text-[10px] leading-tight border-l-2 ${statusColors[ag.status || "confirmado"]}`}
+                            >
+                              <p className="font-semibold text-foreground truncate flex items-center gap-1">
+                                {offset > 0 && <span className="text-[9px] font-mono opacity-80">{ag.hora!.substring(0, 5)}</span>}
+                                <span className="truncate">{(ag.clientes as any)?.nome || "Cliente"}</span>
+                              </p>
+                              <p className="text-muted-foreground truncate">
+                                {(ag.servicos as any)?.nome} • {ag.duracao}min
+                              </p>
+                            </motion.div>
+                          );
+                        })
                       ) : blocked ? (
                         <div className="rounded-lg p-1.5 text-[10px] bg-destructive/10 border-l-2 border-destructive/30 flex items-center gap-1 text-destructive/70 h-full">
                           <Ban className="w-2.5 h-2.5 shrink-0" />
