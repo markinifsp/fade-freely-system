@@ -258,6 +258,7 @@ export type Database = {
           id: string
           nome: string
           telefone: string | null
+          user_id: string | null
         }
         Insert: {
           barbearia_id: string
@@ -266,6 +267,7 @@ export type Database = {
           id?: string
           nome: string
           telefone?: string | null
+          user_id?: string | null
         }
         Update: {
           barbearia_id?: string
@@ -274,6 +276,7 @@ export type Database = {
           id?: string
           nome?: string
           telefone?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -389,6 +392,13 @@ export type Database = {
         Returns: boolean
       }
       get_barbeiro_id: { Args: { _user_id: string }; Returns: string }
+      get_busy_slots: {
+        Args: { _barbeiro_id: string; _data: string }
+        Returns: {
+          duracao: number
+          hora: string
+        }[]
+      }
       get_user_barbearia_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
