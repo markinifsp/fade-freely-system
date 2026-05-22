@@ -15,6 +15,10 @@ import Configuracoes from "./pages/Configuracoes";
 import Calendario from "./pages/Calendario";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import Agendar from "./pages/public/Agendar";
+import AgendarLogin from "./pages/public/AgendarLogin";
+import AgendarCadastro from "./pages/public/AgendarCadastro";
+import MeusAgendamentos from "./pages/public/MeusAgendamentos";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +66,10 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={session ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/agendar" element={<Agendar />} />
+      <Route path="/agendar/login" element={<AgendarLogin />} />
+      <Route path="/agendar/cadastro" element={<AgendarCadastro />} />
+      <Route path="/agendar/meus" element={<MeusAgendamentos />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );
