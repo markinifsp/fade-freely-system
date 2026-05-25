@@ -25,6 +25,15 @@ export default function AgendarLogin() {
     setLoading(false);
   };
 
+  const handleForgot = async () => {
+    if (!form.email) return toast.error("Digite seu email primeiro");
+    const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Link de recuperação enviado para seu email");
+  };
+
   return (
     <PublicLayout>
       <div className="max-w-md mx-auto bg-card border border-border rounded-xl p-6 space-y-4 shadow-card">
