@@ -50,6 +50,9 @@ export default function AgendarLogin() {
         <Button onClick={handle} disabled={loading} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
           {loading ? "Carregando..." : "Entrar"}
         </Button>
+        <button type="button" onClick={handleForgot} className="block mx-auto text-xs text-muted-foreground hover:text-primary">
+          Esqueci minha senha
+        </button>
         <p className="text-sm text-center text-muted-foreground">
           Não tem conta? <Link to="/agendar/cadastro" className="text-primary hover:underline">Criar conta</Link>
         </p>
