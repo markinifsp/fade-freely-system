@@ -71,6 +71,7 @@ function AppRoutes() {
       <Route path="/agendar/login" element={<AgendarLogin />} />
       <Route path="/agendar/cadastro" element={<AgendarCadastro />} />
       <Route path="/agendar/meus" element={<MeusAgendamentos />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );
