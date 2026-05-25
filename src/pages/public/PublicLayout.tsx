@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Scissors, LogOut, CalendarCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
@@ -31,6 +32,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
             <span className="font-display text-lg font-semibold">BarberPro</span>
           </Link>
           <div className="flex items-center gap-2">
+            <ThemeSwitcher />
             {authed ? (
               <>
                 <Button variant="ghost" size="sm" onClick={() => nav("/agendar/meus")}>
