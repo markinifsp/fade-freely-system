@@ -19,6 +19,7 @@ import Agendar from "./pages/public/Agendar";
 import AgendarLogin from "./pages/public/AgendarLogin";
 import AgendarCadastro from "./pages/public/AgendarCadastro";
 import MeusAgendamentos from "./pages/public/MeusAgendamentos";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
