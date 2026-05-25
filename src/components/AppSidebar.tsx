@@ -26,6 +26,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 const allMenuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard, roles: ["admin", "barbeiro"] },
@@ -113,9 +114,14 @@ export function AppSidebar() {
           )}
         </div>
         {!collapsed && (
-          <Button variant="outline" size="sm" className="w-full text-xs" onClick={signOut}>
-            <LogOut className="w-3 h-3 mr-1.5" /> Sair
-          </Button>
+          <>
+            <div className="flex justify-center">
+              <ThemeSwitcher />
+            </div>
+            <Button variant="outline" size="sm" className="w-full text-xs" onClick={signOut}>
+              <LogOut className="w-3 h-3 mr-1.5" /> Sair
+            </Button>
+          </>
         )}
       </SidebarFooter>
     </Sidebar>
