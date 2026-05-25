@@ -29,6 +29,15 @@ export default function Clientes() {
     });
   };
 
+  const handleResetSenha = async (email: string | null) => {
+    if (!email) return toast.error("Cliente não tem email cadastrado");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`Link de redefinição enviado para ${email}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
