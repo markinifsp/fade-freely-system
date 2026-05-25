@@ -25,6 +25,15 @@ export default function AgendarLogin() {
     setLoading(false);
   };
 
+  const handleForgot = async () => {
+    if (!form.email) return toast.error("Digite seu email primeiro");
+    const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Link de recuperação enviado para seu email");
+  };
+
   return (
     <PublicLayout>
       <div className="max-w-md mx-auto bg-card border border-border rounded-xl p-6 space-y-4 shadow-card">
@@ -41,6 +50,9 @@ export default function AgendarLogin() {
         <Button onClick={handle} disabled={loading} className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
           {loading ? "Carregando..." : "Entrar"}
         </Button>
+        <button type="button" onClick={handleForgot} className="block mx-auto text-xs text-muted-foreground hover:text-primary">
+          Esqueci minha senha
+        </button>
         <p className="text-sm text-center text-muted-foreground">
           Não tem conta? <Link to="/agendar/cadastro" className="text-primary hover:underline">Criar conta</Link>
         </p>

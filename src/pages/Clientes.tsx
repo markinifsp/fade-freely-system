@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useClientes, useCreateCliente, useAgendamentos } from "@/hooks/useSupabaseData";
-import { Plus, Phone, Calendar, Search, User } from "lucide-react";
+import { Plus, Phone, Calendar, Search, User, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function Clientes() {
   const { data: lista = [], isLoading } = useClientes();
@@ -25,6 +27,15 @@ export default function Clientes() {
     createCliente.mutate({ nome: form.nome, telefone: form.telefone, email: form.email || undefined }, {
       onSuccess: () => { setDialogOpen(false); setForm({ nome: "", telefone: "", email: "" }); }
     });
+  };
+
+  const handleResetSenha = async (email: string | null) => {
+    if (!email) return toast.error("Cliente não tem email cadastrado");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) return toast.error(error.message);
+    toast.success(`Link de redefinição enviado para ${email}`);
   };
 
   return (
@@ -80,9 +91,16 @@ export default function Clientes() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-primary">R$ {totalGasto}</p>
-                  <p className="text-[10px] text-muted-foreground">total gasto</p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-primary">R$ {totalGasto}</p>
+                    <p className="text-[10px] text-muted-foreground">total gasto</p>
+                  </div>
+                  {cli.email && (
+                    <Button variant="ghost" size="sm" onClick={() => handleResetSenha(cli.email)} title="Enviar reset de senha">
+                      <KeyRound className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             );

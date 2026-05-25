@@ -19,6 +19,7 @@ import Agendar from "./pages/public/Agendar";
 import AgendarLogin from "./pages/public/AgendarLogin";
 import AgendarCadastro from "./pages/public/AgendarCadastro";
 import MeusAgendamentos from "./pages/public/MeusAgendamentos";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ function AppRoutes() {
       <Route path="/agendar/login" element={<AgendarLogin />} />
       <Route path="/agendar/cadastro" element={<AgendarCadastro />} />
       <Route path="/agendar/meus" element={<MeusAgendamentos />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );
