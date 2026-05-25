@@ -91,9 +91,16 @@ export default function Clientes() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-primary">R$ {totalGasto}</p>
-                  <p className="text-[10px] text-muted-foreground">total gasto</p>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-primary">R$ {totalGasto}</p>
+                    <p className="text-[10px] text-muted-foreground">total gasto</p>
+                  </div>
+                  {cli.email && (
+                    <Button variant="ghost" size="sm" onClick={() => handleResetSenha(cli.email)} title="Enviar reset de senha">
+                      <KeyRound className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </motion.div>
             );
