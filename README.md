@@ -13,10 +13,41 @@ Sistema SaaS multi-tenant para gestão completa de barbearias: agendamentos, bar
 - [Estrutura de Pastas](#-estrutura-de-pastas)
 - [Banco de Dados](#-banco-de-dados)
 - [Autenticação e Roles](#-autenticação-e-roles)
+- [Tema (Modo Claro/Escuro e Cores)](#-tema-modo-claroescuro-e-cores)
 - [Como Rodar](#-como-rodar)
 - [Edge Functions](#-edge-functions)
 - [Integração com n8n + WhatsApp](#-integração-com-n8n--whatsapp)
 - [Melhorias Futuras](#-melhorias-futuras)
+
+---
+
+## 🎨 Tema (Modo Claro/Escuro e Cores)
+
+A aplicação suporta **modo escuro** (padrão) e **modo claro**, além de **5 variações de cor** para o tema:
+
+| Cor       | Valor             |
+|-----------|-------------------|
+| Ouro      | `gold` (padrão)   |
+| Azul      | `blue`            |
+| Esmeralda | `emerald`         |
+| Púrpura   | `purple`          |
+| Rosa      | `rose`            |
+
+### Como usar
+
+- Botões na barra lateral (gestão) e no header da área pública permitem alternar:
+  - 🌞/🌙 — alterna modo claro/escuro
+  - 🎨 — escolhe a cor de destaque
+- As preferências são salvas em `localStorage` (`theme-mode` e `theme-color`) e aplicadas no carregamento.
+
+### Implementação técnica
+
+- `src/contexts/ThemeContext.tsx` gerencia estado e persistência.
+- Aplica `class="light|dark"` e `data-theme="<cor>"` em `<html>`.
+- Tokens semânticos em `src/index.css` (`--primary`, `--accent`, `--ring`, etc.) são sobrescritos por modo e cor.
+- Componentes consomem apenas tokens — nenhuma cor hard-coded.
+
+
 
 ---
 
