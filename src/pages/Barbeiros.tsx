@@ -196,44 +196,52 @@ export default function Barbeiros() {
   );
 }
 
-function PermissoesForm({ barbeiro, onSave }: { barbeiro: any; onSave: (p: any) => void }) {
+function PermissoesForm({ barbeiro, onSave, isPending }: { barbeiro: any; onSave: (p: any) => void; isPending: boolean }) {
   const perms = Array.isArray(barbeiro.barbeiro_permissoes) ? barbeiro.barbeiro_permissoes[0] : barbeiro.barbeiro_permissoes;
-  const [verAgenda, setVerAgenda] = useState(perms?.ver_agenda_outros ?? false);
-  const [verFat, setVerFat] = useState(perms?.ver_faturamento_total ?? false);
-  const [editAgenda, setEditAgenda] = useState(perms?.editar_propria_agenda ?? true);
+  const inicial = {
+    ver_agenda_outros: perms?.ver_agenda_outros ?? false,
+    ver_faturamento_total: perms?.ver_faturamento_total ?? false,
+    editar_propria_agenda: perms?.editar_propria_agenda ?? true,
+  };
+  const [valores, setValores] = useState(inicial);
+
+  const set = (k: keyof typeof inicial) => (v: boolean) => setValores(p => ({ ...p, [k]: v }));
+  const dirty = (Object.keys(inicial) as (keyof typeof inicial)[]).some(k => inicial[k] !== valores[k]);
+
+  const itens: { key: keyof typeof inicial; titulo: string; desc: string }[] = [
+    { key: "ver_agenda_outros", titulo: "Ver agenda de outros", desc: "Vê agendamentos e calendário de todos os barbeiros (desligado: só a própria agenda)" },
+    { key: "ver_faturamento_total", titulo: "Ver faturamento total", desc: "Libera o menu Financeiro com a receita da barbearia" },
+    { key: "editar_propria_agenda", titulo: "Editar agenda", desc: "Pode criar agendamentos e concluir/cancelar (desligado: somente leitura)" },
+  ];
 
   return (
     <div className="space-y-4 pt-2">
-      <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-        <div>
-          <p className="text-sm font-medium text-foreground">Ver agenda de outros</p>
-          <p className="text-xs text-muted-foreground">Pode visualizar agendamentos de outros barbeiros</p>
+      <p className="text-xs text-muted-foreground">
+        Barbeiros nunca acessam Dashboard, Barbeiros, Serviços, Clientes e Configurações. As opções abaixo controlam o restante.
+      </p>
+      {itens.map(item => (
+        <div key={item.key} className="flex items-center justify-between gap-4 p-3 bg-secondary/50 rounded-lg">
+          <div>
+            <p className="text-sm font-medium text-foreground">{item.titulo}</p>
+            <p className="text-xs text-muted-foreground">{item.desc}</p>
+          </div>
+          <Switch checked={valores[item.key]} onCheckedChange={set(item.key)} />
         </div>
-        <Switch checked={verAgenda} onCheckedChange={setVerAgenda} />
-      </div>
-      <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-        <div>
-          <p className="text-sm font-medium text-foreground">Ver faturamento total</p>
-          <p className="text-xs text-muted-foreground">Pode ver receita de toda a barbearia</p>
-        </div>
-        <Switch checked={verFat} onCheckedChange={setVerFat} />
-      </div>
-      <div className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg">
-        <div>
-          <p className="text-sm font-medium text-foreground">Editar própria agenda</p>
-          <p className="text-xs text-muted-foreground">Pode bloquear dias e alterar horários</p>
-        </div>
-        <Switch checked={editAgenda} onCheckedChange={setEditAgenda} />
-      </div>
+      ))}
       <Button
-        onClick={() => onSave({ ver_agenda_outros: verAgenda, ver_faturamento_total: verFat, editar_propria_agenda: editAgenda })}
+        onClick={() => onSave(valores)}
+        disabled={isPending || !dirty}
         className="w-full bg-gradient-gold text-primary-foreground hover:opacity-90"
       >
-        Salvar Permissões
+        {isPending ? "Salvando..." : dirty ? "Salvar Permissões" : "Nenhuma alteração"}
       </Button>
+      <p className="text-[11px] text-muted-foreground text-center">
+        O barbeiro verá as mudanças no próximo login ou ao recarregar a página.
+      </p>
     </div>
   );
 }
+
 
 function CredenciaisForm({ barbeiro, onSave, isPending }: { barbeiro: any; onSave: (c: { email?: string; password?: string }) => void; isPending: boolean }) {
   const [email, setEmail] = useState(barbeiro.email || "");
