@@ -57,8 +57,10 @@ export default function Calendario() {
   const { data: servicos = [] } = useServicos();
   const { data: clientes = [] } = useClientes();
   const { data: barbearia } = useBarbearia();
-  const { barbeariaId, role, barbeiroId: myBarbeiroId } = useAuth();
+  const { barbeariaId, role, barbeiroId: myBarbeiroId, can } = useAuth();
   const isBarbeiro = role === "barbeiro";
+  const soMinhaAgenda = isBarbeiro && !can("ver_agenda_outros");
+  const podeEditar = can("editar_propria_agenda");
 
   const { data: bloqueios = [] } = useBloqueiosByDate(dateStr, barbeariaId);
   const updateStatus = useUpdateAgendamentoStatus();
