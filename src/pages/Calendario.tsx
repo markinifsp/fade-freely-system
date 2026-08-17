@@ -213,7 +213,7 @@ export default function Calendario() {
                   const ags = getAgendamentosInSlot(b.id, hora);
                   const blocked = isBlocked(b.id, hora);
                   const slotStart = toMin(hora);
-                  const empty = ags.length === 0 && !blocked;
+                  const empty = ags.length === 0 && !blocked && podeEditar;
                   return (
                     <div
                       key={b.id}
