@@ -150,6 +150,9 @@ export default function Agendamentos() {
             </div>
           </DialogContent>
         </Dialog>
+        ) : (
+          <p className="text-xs text-muted-foreground">Sem permissão para criar ou alterar agendamentos.</p>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-3 items-center">
