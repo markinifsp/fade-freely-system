@@ -62,8 +62,8 @@ export default function Agendamentos() {
     : false;
 
   const filtrados = agendamentos.filter(a => {
-    if (isBarbeiro && a.barbeiro_id !== barbeiroId) return false;
-    if (!isBarbeiro && filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
+    if (soMinhaAgenda && a.barbeiro_id !== barbeiroId) return false;
+    if (!soMinhaAgenda && filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
     if (filtroStatus !== "todos" && a.status !== filtroStatus) return false;
     return true;
 
