@@ -96,7 +96,7 @@ export default function Calendario() {
 
   const timeSlots = generateSlots(startMin, endMin);
 
-  const barbeirosAtivos = barbeiros.filter(b => b.ativo && (!isBarbeiro || b.id === myBarbeiroId));
+  const barbeirosAtivos = barbeiros.filter(b => b.ativo && (!soMinhaAgenda || b.id === myBarbeiroId));
   const filteredBarbeiros = filtroBarbeiro === "todos"
     ? barbeirosAtivos
     : barbeirosAtivos.filter(b => b.id === filtroBarbeiro);
