@@ -73,11 +73,12 @@ export default function Agendamentos() {
   const handleCriar = () => {
     if (horaBloqueada) return;
     const servico = servicos.find(s => s.id === formData.servicoId);
-    if (!formData.clienteId || !formData.barbeiroId || !servico) return;
+    if (!formData.clienteId || !efetivoBarbeiroForm || !servico) return;
 
     createAg.mutate({
       cliente_id: formData.clienteId,
-      barbeiro_id: formData.barbeiroId,
+      barbeiro_id: efetivoBarbeiroForm,
+
       servico_id: formData.servicoId,
       data: formData.data,
       hora: formData.hora,
