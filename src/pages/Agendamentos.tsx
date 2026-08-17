@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAgendamentos, useBarbeiros, useServicos, useClientes, useCreateAgendamento, useUpdateAgendamentoStatus, useBloqueiosByBarbeiroDate } from "@/hooks/useSupabaseData";
+import { useAuth } from "@/contexts/AuthContext";
 import { Calendar, Plus, Filter, Check, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -30,6 +31,8 @@ function isHoraBlocked(bloqueios: any[], hora: string): boolean {
 }
 
 export default function Agendamentos() {
+  const { role, barbeiroId } = useAuth();
+  const isBarbeiro = role === "barbeiro";
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -43,19 +46,24 @@ export default function Agendamentos() {
   const { data: clientes = [] } = useClientes();
   const createAg = useCreateAgendamento();
   const updateStatus = useUpdateAgendamentoStatus();
+
+  const efetivoBarbeiroForm = isBarbeiro ? (barbeiroId || "") : formData.barbeiroId;
+
   const { data: bloqueiosForForm = [] } = useBloqueiosByBarbeiroDate(
-    formData.barbeiroId || undefined,
+    efetivoBarbeiroForm || undefined,
     formData.data || undefined
   );
 
-  const horaBloqueada = formData.barbeiroId && formData.data && formData.hora
+  const horaBloqueada = efetivoBarbeiroForm && formData.data && formData.hora
     ? isHoraBlocked(bloqueiosForForm, formData.hora)
     : false;
 
   const filtrados = agendamentos.filter(a => {
-    if (filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
+    if (isBarbeiro && a.barbeiro_id !== barbeiroId) return false;
+    if (!isBarbeiro && filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
     if (filtroStatus !== "todos" && a.status !== filtroStatus) return false;
     return true;
+
   }).sort((a, b) => {
     const dateComp = (a.data || "").localeCompare(b.data || "");
     if (dateComp !== 0) return dateComp;
@@ -65,11 +73,12 @@ export default function Agendamentos() {
   const handleCriar = () => {
     if (horaBloqueada) return;
     const servico = servicos.find(s => s.id === formData.servicoId);
-    if (!formData.clienteId || !formData.barbeiroId || !servico) return;
+    if (!formData.clienteId || !efetivoBarbeiroForm || !servico) return;
 
     createAg.mutate({
       cliente_id: formData.clienteId,
-      barbeiro_id: formData.barbeiroId,
+      barbeiro_id: efetivoBarbeiroForm,
+
       servico_id: formData.servicoId,
       data: formData.data,
       hora: formData.hora,
@@ -103,13 +112,16 @@ export default function Agendamentos() {
                   <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Barbeiro</Label>
-                <Select value={formData.barbeiroId} onValueChange={v => setFormData({...formData, barbeiroId: v})}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar barbeiro" /></SelectTrigger>
-                  <SelectContent>{barbeiros.filter(b => b.ativo).map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+              {!isBarbeiro && (
+                <div className="space-y-2">
+                  <Label>Barbeiro</Label>
+                  <Select value={formData.barbeiroId} onValueChange={v => setFormData({...formData, barbeiroId: v})}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar barbeiro" /></SelectTrigger>
+                    <SelectContent>{barbeiros.filter(b => b.ativo).map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Serviço</Label>
                 <Select value={formData.servicoId} onValueChange={v => setFormData({...formData, servicoId: v})}>
@@ -137,13 +149,16 @@ export default function Agendamentos() {
 
       <div className="flex flex-wrap gap-3 items-center">
         <Filter className="w-4 h-4 text-muted-foreground" />
-        <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os Barbeiros</SelectItem>
-            {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {!isBarbeiro && (
+          <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Barbeiros</SelectItem>
+              {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
