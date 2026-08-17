@@ -152,7 +152,7 @@ export default function Agendamentos() {
 
       <div className="flex flex-wrap gap-3 items-center">
         <Filter className="w-4 h-4 text-muted-foreground" />
-        {!isBarbeiro && (
+        {!soMinhaAgenda && (
           <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
