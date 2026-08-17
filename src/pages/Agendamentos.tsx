@@ -149,13 +149,16 @@ export default function Agendamentos() {
 
       <div className="flex flex-wrap gap-3 items-center">
         <Filter className="w-4 h-4 text-muted-foreground" />
-        <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos os Barbeiros</SelectItem>
-            {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {!isBarbeiro && (
+          <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os Barbeiros</SelectItem>
+              {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
           <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
