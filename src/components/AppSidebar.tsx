@@ -35,7 +35,7 @@ const allMenuItems = [
   { title: "Barbeiros", url: "/barbeiros", icon: Scissors, roles: ["admin"] },
   { title: "Serviços", url: "/servicos", icon: Menu, roles: ["admin"] },
   { title: "Clientes", url: "/clientes", icon: Users, roles: ["admin"] },
-  { title: "Financeiro", url: "/financeiro", icon: DollarSign, roles: ["admin"] },
+  { title: "Financeiro", url: "/financeiro", icon: DollarSign, roles: ["admin", "barbeiro"], permission: "ver_faturamento_total" as const },
   { title: "Configurações", url: "/configuracoes", icon: Settings, roles: ["admin"] },
 ];
 
@@ -44,11 +44,14 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const { role, profile, signOut } = useAuth();
+  const { role, profile, signOut, can } = useAuth();
 
-  const menuItems = allMenuItems.filter(item =>
-    !role || item.roles.includes(role)
-  );
+  const menuItems = allMenuItems.filter(item => {
+    if (role && !item.roles.includes(role)) return false;
+    if (item.permission && !can(item.permission)) return false;
+    return true;
+  });
+
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border">

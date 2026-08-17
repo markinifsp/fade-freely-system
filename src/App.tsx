@@ -25,7 +25,7 @@ import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { session, loading, role } = useAuth();
+  const { session, loading, role, can } = useAuth();
 
   if (loading) {
     return (
@@ -40,6 +40,8 @@ function ProtectedRoutes() {
   const isBarbeiro = role === "barbeiro";
   const adminOnly = (el: JSX.Element) =>
     isBarbeiro ? <Navigate to="/agendamentos" replace /> : el;
+  const requirePermission = (perm: "ver_faturamento_total", el: JSX.Element) =>
+    can(perm) ? el : <Navigate to="/agendamentos" replace />;
 
   return (
     <AppLayout>
@@ -50,7 +52,8 @@ function ProtectedRoutes() {
         <Route path="/barbeiros" element={adminOnly(<Barbeiros />)} />
         <Route path="/servicos" element={adminOnly(<Servicos />)} />
         <Route path="/clientes" element={adminOnly(<Clientes />)} />
-        <Route path="/financeiro" element={adminOnly(<Financeiro />)} />
+        <Route path="/financeiro" element={requirePermission("ver_faturamento_total", <Financeiro />)} />
+
         <Route path="/configuracoes" element={adminOnly(<Configuracoes />)} />
         <Route path="*" element={<NotFound />} />
       </Routes>

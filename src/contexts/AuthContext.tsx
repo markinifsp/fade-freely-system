@@ -5,6 +5,18 @@ import { useNavigate } from "react-router-dom";
 
 type AppRole = "admin" | "barbeiro";
 
+export interface Permissoes {
+  ver_agenda_outros: boolean;
+  ver_faturamento_total: boolean;
+  editar_propria_agenda: boolean;
+}
+
+const DEFAULT_PERMISSOES: Permissoes = {
+  ver_agenda_outros: false,
+  ver_faturamento_total: false,
+  editar_propria_agenda: true,
+};
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -12,13 +24,16 @@ interface AuthContextType {
   barbeariaId: string | null;
   barbeiroId: string | null;
   profile: { nome: string; email: string | null } | null;
+  permissoes: Permissoes;
+  can: (perm: keyof Permissoes) => boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null, user: null, role: null, barbeariaId: null, barbeiroId: null,
-  profile: null, loading: true, signOut: async () => {},
+  profile: null, permissoes: DEFAULT_PERMISSOES, can: () => false,
+  loading: true, signOut: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -30,7 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [barbeariaId, setBarbeariaId] = useState<string | null>(null);
   const [barbeiroId, setBarbeiroId] = useState<string | null>(null);
   const [profile, setProfile] = useState<{ nome: string; email: string | null } | null>(null);
+  const [permissoes, setPermissoes] = useState<Permissoes>(DEFAULT_PERMISSOES);
   const [loading, setLoading] = useState(true);
+
 
   const loadUserData = async (userId: string) => {
     try {
@@ -40,16 +57,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         supabase.from("barbeiros").select("id").eq("user_id", userId).maybeSingle(),
       ]);
 
-      if (rolesRes.data?.length) setRole(rolesRes.data[0].role as AppRole);
+      const userRole = rolesRes.data?.length ? (rolesRes.data[0].role as AppRole) : null;
+      if (userRole) setRole(userRole);
       if (profileRes.data) {
         setProfile({ nome: profileRes.data.nome, email: profileRes.data.email });
         setBarbeariaId(profileRes.data.barbearia_id);
       }
-      if (barbeiroRes.data) setBarbeiroId(barbeiroRes.data.id);
+      if (barbeiroRes.data) {
+        setBarbeiroId(barbeiroRes.data.id);
+        const { data: permData } = await supabase
+          .from("barbeiro_permissoes")
+          .select("ver_agenda_outros, ver_faturamento_total, editar_propria_agenda")
+          .eq("barbeiro_id", barbeiroRes.data.id)
+          .maybeSingle();
+        setPermissoes({
+          ver_agenda_outros: permData?.ver_agenda_outros ?? false,
+          ver_faturamento_total: permData?.ver_faturamento_total ?? false,
+          editar_propria_agenda: permData?.editar_propria_agenda ?? true,
+        });
+      }
     } catch (err) {
       console.error("Error loading user data:", err);
     }
   };
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -62,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setBarbeariaId(null);
         setBarbeiroId(null);
         setProfile(null);
+        setPermissoes(DEFAULT_PERMISSOES);
       }
       setLoading(false);
     });
@@ -82,10 +114,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setBarbeariaId(null);
     setBarbeiroId(null);
     setProfile(null);
+    setPermissoes(DEFAULT_PERMISSOES);
   };
 
+  // Admin sempre tem acesso total; barbeiro depende das permissões salvas
+  const can = (perm: keyof Permissoes) =>
+    role === "admin" ? true : permissoes[perm];
+
   return (
-    <AuthContext.Provider value={{ session, user, role, barbeariaId, barbeiroId, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, role, barbeariaId, barbeiroId, profile, permissoes, can, loading, signOut }}>
+
       {children}
     </AuthContext.Provider>
   );

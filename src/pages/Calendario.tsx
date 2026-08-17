@@ -57,8 +57,10 @@ export default function Calendario() {
   const { data: servicos = [] } = useServicos();
   const { data: clientes = [] } = useClientes();
   const { data: barbearia } = useBarbearia();
-  const { barbeariaId, role, barbeiroId: myBarbeiroId } = useAuth();
+  const { barbeariaId, role, barbeiroId: myBarbeiroId, can } = useAuth();
   const isBarbeiro = role === "barbeiro";
+  const soMinhaAgenda = isBarbeiro && !can("ver_agenda_outros");
+  const podeEditar = can("editar_propria_agenda");
 
   const { data: bloqueios = [] } = useBloqueiosByDate(dateStr, barbeariaId);
   const updateStatus = useUpdateAgendamentoStatus();
@@ -94,7 +96,7 @@ export default function Calendario() {
 
   const timeSlots = generateSlots(startMin, endMin);
 
-  const barbeirosAtivos = barbeiros.filter(b => b.ativo && (!isBarbeiro || b.id === myBarbeiroId));
+  const barbeirosAtivos = barbeiros.filter(b => b.ativo && (!soMinhaAgenda || b.id === myBarbeiroId));
   const filteredBarbeiros = filtroBarbeiro === "todos"
     ? barbeirosAtivos
     : barbeirosAtivos.filter(b => b.id === filtroBarbeiro);
@@ -147,9 +149,13 @@ export default function Calendario() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Calendário</h1>
-          <p className="text-sm text-muted-foreground mt-1">Clique num horário vago para agendar ou num agendamento para gerenciar</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {podeEditar
+              ? "Clique num horário vago para agendar ou num agendamento para gerenciar"
+              : "Visualização somente leitura da agenda"}
+          </p>
         </div>
-        {!isBarbeiro && (
+        {!soMinhaAgenda && (
           <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -207,7 +213,7 @@ export default function Calendario() {
                   const ags = getAgendamentosInSlot(b.id, hora);
                   const blocked = isBlocked(b.id, hora);
                   const slotStart = toMin(hora);
-                  const empty = ags.length === 0 && !blocked;
+                  const empty = ags.length === 0 && !blocked && podeEditar;
                   return (
                     <div
                       key={b.id}
@@ -274,7 +280,7 @@ export default function Calendario() {
                 <p><span className="text-muted-foreground">Valor:</span> R$ {selectedAg.preco}</p>
                 <p><span className="text-muted-foreground">Status:</span> {selectedAg.status}</p>
               </div>
-              {selectedAg.status === "confirmado" && (
+              {selectedAg.status === "confirmado" && podeEditar && (
                 <div className="flex gap-2">
                   <Button
                     className="flex-1 bg-success/20 text-success hover:bg-success/30 border border-success/30"

@@ -31,8 +31,11 @@ function isHoraBlocked(bloqueios: any[], hora: string): boolean {
 }
 
 export default function Agendamentos() {
-  const { role, barbeiroId } = useAuth();
+  const { role, barbeiroId, can } = useAuth();
   const isBarbeiro = role === "barbeiro";
+  const soMinhaAgenda = isBarbeiro && !can("ver_agenda_outros");
+  const podeEditar = can("editar_propria_agenda");
+
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -59,8 +62,8 @@ export default function Agendamentos() {
     : false;
 
   const filtrados = agendamentos.filter(a => {
-    if (isBarbeiro && a.barbeiro_id !== barbeiroId) return false;
-    if (!isBarbeiro && filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
+    if (soMinhaAgenda && a.barbeiro_id !== barbeiroId) return false;
+    if (!soMinhaAgenda && filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
     if (filtroStatus !== "todos" && a.status !== filtroStatus) return false;
     return true;
 
@@ -96,6 +99,7 @@ export default function Agendamentos() {
           <h1 className="text-2xl font-display font-bold text-foreground">Agendamentos</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie todos os agendamentos</p>
         </div>
+        {podeEditar ? (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
@@ -104,6 +108,7 @@ export default function Agendamentos() {
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader><DialogTitle className="font-display">Novo Agendamento</DialogTitle></DialogHeader>
+
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Cliente</Label>
@@ -145,11 +150,14 @@ export default function Agendamentos() {
             </div>
           </DialogContent>
         </Dialog>
+        ) : (
+          <p className="text-xs text-muted-foreground">Sem permissão para criar ou alterar agendamentos.</p>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-3 items-center">
         <Filter className="w-4 h-4 text-muted-foreground" />
-        {!isBarbeiro && (
+        {!soMinhaAgenda && (
           <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -203,7 +211,7 @@ export default function Agendamentos() {
                   {statusLabels[ag.status || "confirmado"]}
                 </span>
                 <p className="text-sm font-semibold text-foreground">R$ {ag.preco}</p>
-                {ag.status === "confirmado" && (
+                {ag.status === "confirmado" && podeEditar && (
                   <div className="flex gap-1 ml-2">
                     <button onClick={() => updateStatus.mutate({ id: ag.id, status: "concluido" })} className="w-7 h-7 rounded-md bg-success/20 text-success hover:bg-success/30 flex items-center justify-center transition-colors">
                       <Check className="w-3.5 h-3.5" />
