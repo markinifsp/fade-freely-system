@@ -152,10 +152,14 @@ export default function Barbeiros() {
           <DialogHeader><DialogTitle className="font-display">Permissões — {permDialogBarbeiro?.nome}</DialogTitle></DialogHeader>
           {permDialogBarbeiro && (
             <PermissoesForm
+              key={permDialogBarbeiro.id}
               barbeiro={permDialogBarbeiro}
+              isPending={updatePermissoes.isPending}
               onSave={(perms) => {
-                updatePermissoes.mutate({ barbeiroId: permDialogBarbeiro.id, permissoes: perms });
-                setPermDialogBarbeiro(null);
+                updatePermissoes.mutate(
+                  { barbeiroId: permDialogBarbeiro.id, permissoes: perms },
+                  { onSuccess: () => setPermDialogBarbeiro(null) }
+                );
               }}
             />
           )}
