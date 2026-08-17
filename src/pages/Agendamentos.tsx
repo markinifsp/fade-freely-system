@@ -31,8 +31,11 @@ function isHoraBlocked(bloqueios: any[], hora: string): boolean {
 }
 
 export default function Agendamentos() {
-  const { role, barbeiroId } = useAuth();
+  const { role, barbeiroId, can } = useAuth();
   const isBarbeiro = role === "barbeiro";
+  const soMinhaAgenda = isBarbeiro && !can("ver_agenda_outros");
+  const podeEditar = can("editar_propria_agenda");
+
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
