@@ -25,7 +25,7 @@ import ResetPassword from "./pages/ResetPassword";
 const queryClient = new QueryClient();
 
 function ProtectedRoutes() {
-  const { session, loading } = useAuth();
+  const { session, loading, role } = useAuth();
 
   if (loading) {
     return (
@@ -37,22 +37,27 @@ function ProtectedRoutes() {
 
   if (!session) return <Navigate to="/login" replace />;
 
+  const isBarbeiro = role === "barbeiro";
+  const adminOnly = (el: JSX.Element) =>
+    isBarbeiro ? <Navigate to="/agendamentos" replace /> : el;
+
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={adminOnly(<Dashboard />)} />
         <Route path="/agendamentos" element={<Agendamentos />} />
         <Route path="/calendario" element={<Calendario />} />
-        <Route path="/barbeiros" element={<Barbeiros />} />
-        <Route path="/servicos" element={<Servicos />} />
-        <Route path="/clientes" element={<Clientes />} />
-        <Route path="/financeiro" element={<Financeiro />} />
-        <Route path="/configuracoes" element={<Configuracoes />} />
+        <Route path="/barbeiros" element={adminOnly(<Barbeiros />)} />
+        <Route path="/servicos" element={adminOnly(<Servicos />)} />
+        <Route path="/clientes" element={adminOnly(<Clientes />)} />
+        <Route path="/financeiro" element={adminOnly(<Financeiro />)} />
+        <Route path="/configuracoes" element={adminOnly(<Configuracoes />)} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
   );
 }
+
 
 function AppRoutes() {
   const { session, loading } = useAuth();
