@@ -93,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setBarbeariaId(null);
         setBarbeiroId(null);
         setProfile(null);
+        setPermissoes(DEFAULT_PERMISSOES);
       }
       setLoading(false);
     });
@@ -113,10 +114,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setBarbeariaId(null);
     setBarbeiroId(null);
     setProfile(null);
+    setPermissoes(DEFAULT_PERMISSOES);
   };
 
+  // Admin sempre tem acesso total; barbeiro depende das permissões salvas
+  const can = (perm: keyof Permissoes) =>
+    role === "admin" ? true : permissoes[perm];
+
   return (
-    <AuthContext.Provider value={{ session, user, role, barbeariaId, barbeiroId, profile, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, role, barbeariaId, barbeiroId, profile, permissoes, can, loading, signOut }}>
+
       {children}
     </AuthContext.Provider>
   );
