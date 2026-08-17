@@ -29,15 +29,16 @@ import { Button } from "@/components/ui/button";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 const allMenuItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard, roles: ["admin", "barbeiro"] },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard, roles: ["admin"] },
   { title: "Agendamentos", url: "/agendamentos", icon: Calendar, roles: ["admin", "barbeiro"] },
   { title: "Calendário", url: "/calendario", icon: CalendarDays, roles: ["admin", "barbeiro"] },
   { title: "Barbeiros", url: "/barbeiros", icon: Scissors, roles: ["admin"] },
   { title: "Serviços", url: "/servicos", icon: Menu, roles: ["admin"] },
-  { title: "Clientes", url: "/clientes", icon: Users, roles: ["admin", "barbeiro"] },
-  { title: "Financeiro", url: "/financeiro", icon: DollarSign, roles: ["admin", "barbeiro"] },
+  { title: "Clientes", url: "/clientes", icon: Users, roles: ["admin"] },
+  { title: "Financeiro", url: "/financeiro", icon: DollarSign, roles: ["admin"] },
   { title: "Configurações", url: "/configuracoes", icon: Settings, roles: ["admin"] },
 ];
+
 
 export function AppSidebar() {
   const { state } = useSidebar();
