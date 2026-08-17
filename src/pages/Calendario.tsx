@@ -280,7 +280,7 @@ export default function Calendario() {
                 <p><span className="text-muted-foreground">Valor:</span> R$ {selectedAg.preco}</p>
                 <p><span className="text-muted-foreground">Status:</span> {selectedAg.status}</p>
               </div>
-              {selectedAg.status === "confirmado" && (
+              {selectedAg.status === "confirmado" && podeEditar && (
                 <div className="flex gap-2">
                   <Button
                     className="flex-1 bg-success/20 text-success hover:bg-success/30 border border-success/30"
