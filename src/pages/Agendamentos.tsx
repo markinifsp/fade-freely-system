@@ -30,6 +30,8 @@ function isHoraBlocked(bloqueios: any[], hora: string): boolean {
 }
 
 export default function Agendamentos() {
+  const { role, barbeiroId } = useAuth();
+  const isBarbeiro = role === "barbeiro";
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -43,19 +45,24 @@ export default function Agendamentos() {
   const { data: clientes = [] } = useClientes();
   const createAg = useCreateAgendamento();
   const updateStatus = useUpdateAgendamentoStatus();
+
+  const efetivoBarbeiroForm = isBarbeiro ? (barbeiroId || "") : formData.barbeiroId;
+
   const { data: bloqueiosForForm = [] } = useBloqueiosByBarbeiroDate(
-    formData.barbeiroId || undefined,
+    efetivoBarbeiroForm || undefined,
     formData.data || undefined
   );
 
-  const horaBloqueada = formData.barbeiroId && formData.data && formData.hora
+  const horaBloqueada = efetivoBarbeiroForm && formData.data && formData.hora
     ? isHoraBlocked(bloqueiosForForm, formData.hora)
     : false;
 
   const filtrados = agendamentos.filter(a => {
-    if (filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
+    if (isBarbeiro && a.barbeiro_id !== barbeiroId) return false;
+    if (!isBarbeiro && filtroBarbeiro !== "todos" && a.barbeiro_id !== filtroBarbeiro) return false;
     if (filtroStatus !== "todos" && a.status !== filtroStatus) return false;
     return true;
+
   }).sort((a, b) => {
     const dateComp = (a.data || "").localeCompare(b.data || "");
     if (dateComp !== 0) return dateComp;
