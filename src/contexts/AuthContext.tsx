@@ -57,16 +57,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         supabase.from("barbeiros").select("id").eq("user_id", userId).maybeSingle(),
       ]);
 
-      if (rolesRes.data?.length) setRole(rolesRes.data[0].role as AppRole);
+      const userRole = rolesRes.data?.length ? (rolesRes.data[0].role as AppRole) : null;
+      if (userRole) setRole(userRole);
       if (profileRes.data) {
         setProfile({ nome: profileRes.data.nome, email: profileRes.data.email });
         setBarbeariaId(profileRes.data.barbearia_id);
       }
-      if (barbeiroRes.data) setBarbeiroId(barbeiroRes.data.id);
+      if (barbeiroRes.data) {
+        setBarbeiroId(barbeiroRes.data.id);
+        const { data: permData } = await supabase
+          .from("barbeiro_permissoes")
+          .select("ver_agenda_outros, ver_faturamento_total, editar_propria_agenda")
+          .eq("barbeiro_id", barbeiroRes.data.id)
+          .maybeSingle();
+        setPermissoes({
+          ver_agenda_outros: permData?.ver_agenda_outros ?? false,
+          ver_faturamento_total: permData?.ver_faturamento_total ?? false,
+          editar_propria_agenda: permData?.editar_propria_agenda ?? true,
+        });
+      }
     } catch (err) {
       console.error("Error loading user data:", err);
     }
   };
+
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
