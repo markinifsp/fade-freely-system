@@ -5,6 +5,18 @@ import { useNavigate } from "react-router-dom";
 
 type AppRole = "admin" | "barbeiro";
 
+export interface Permissoes {
+  ver_agenda_outros: boolean;
+  ver_faturamento_total: boolean;
+  editar_propria_agenda: boolean;
+}
+
+const DEFAULT_PERMISSOES: Permissoes = {
+  ver_agenda_outros: false,
+  ver_faturamento_total: false,
+  editar_propria_agenda: true,
+};
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -12,13 +24,16 @@ interface AuthContextType {
   barbeariaId: string | null;
   barbeiroId: string | null;
   profile: { nome: string; email: string | null } | null;
+  permissoes: Permissoes;
+  can: (perm: keyof Permissoes) => boolean;
   loading: boolean;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   session: null, user: null, role: null, barbeariaId: null, barbeiroId: null,
-  profile: null, loading: true, signOut: async () => {},
+  profile: null, permissoes: DEFAULT_PERMISSOES, can: () => false,
+  loading: true, signOut: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -30,7 +45,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [barbeariaId, setBarbeariaId] = useState<string | null>(null);
   const [barbeiroId, setBarbeiroId] = useState<string | null>(null);
   const [profile, setProfile] = useState<{ nome: string; email: string | null } | null>(null);
+  const [permissoes, setPermissoes] = useState<Permissoes>(DEFAULT_PERMISSOES);
   const [loading, setLoading] = useState(true);
+
 
   const loadUserData = async (userId: string) => {
     try {
