@@ -149,13 +149,16 @@ export default function Calendario() {
           <h1 className="text-2xl font-display font-bold text-foreground">Calendário</h1>
           <p className="text-sm text-muted-foreground mt-1">Clique num horário vago para agendar ou num agendamento para gerenciar</p>
         </div>
-        <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Todos</SelectItem>
-            {barbeirosAtivos.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {!isBarbeiro && (
+          <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {barbeirosAtivos.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
+
       </div>
 
       <div className="flex items-center justify-center gap-4 bg-card border border-border rounded-xl p-3">
