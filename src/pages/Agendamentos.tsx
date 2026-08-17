@@ -211,7 +211,7 @@ export default function Agendamentos() {
                   {statusLabels[ag.status || "confirmado"]}
                 </span>
                 <p className="text-sm font-semibold text-foreground">R$ {ag.preco}</p>
-                {ag.status === "confirmado" && (
+                {ag.status === "confirmado" && podeEditar && (
                   <div className="flex gap-1 ml-2">
                     <button onClick={() => updateStatus.mutate({ id: ag.id, status: "concluido" })} className="w-7 h-7 rounded-md bg-success/20 text-success hover:bg-success/30 flex items-center justify-center transition-colors">
                       <Check className="w-3.5 h-3.5" />
