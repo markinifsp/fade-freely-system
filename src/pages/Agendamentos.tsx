@@ -112,13 +112,16 @@ export default function Agendamentos() {
                   <SelectContent>{clientes.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Barbeiro</Label>
-                <Select value={formData.barbeiroId} onValueChange={v => setFormData({...formData, barbeiroId: v})}>
-                  <SelectTrigger><SelectValue placeholder="Selecionar barbeiro" /></SelectTrigger>
-                  <SelectContent>{barbeiros.filter(b => b.ativo).map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
+              {!isBarbeiro && (
+                <div className="space-y-2">
+                  <Label>Barbeiro</Label>
+                  <Select value={formData.barbeiroId} onValueChange={v => setFormData({...formData, barbeiroId: v})}>
+                    <SelectTrigger><SelectValue placeholder="Selecionar barbeiro" /></SelectTrigger>
+                    <SelectContent>{barbeiros.filter(b => b.ativo).map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}</SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>Serviço</Label>
                 <Select value={formData.servicoId} onValueChange={v => setFormData({...formData, servicoId: v})}>
