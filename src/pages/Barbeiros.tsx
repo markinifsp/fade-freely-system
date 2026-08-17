@@ -124,6 +124,21 @@ export default function Barbeiros() {
                     </span>
                   ))}
                 </div>
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    { on: perms?.ver_agenda_outros ?? false, label: "Agenda geral" },
+                    { on: perms?.ver_faturamento_total ?? false, label: "Financeiro" },
+                    { on: perms?.editar_propria_agenda ?? true, label: "Editar agenda" },
+                  ].map(p => (
+                    <span
+                      key={p.label}
+                      className={`text-[10px] px-2 py-0.5 rounded-full border ${p.on ? "bg-primary/10 text-primary border-primary/20" : "bg-muted/40 text-muted-foreground border-border"}`}
+                    >
+                      {p.on ? "✓" : "✕"} {p.label}
+                    </span>
+                  ))}
+                </div>
+
                 {isAdmin && (
                   <div className="flex gap-2 pt-1 flex-wrap">
                     <Button variant="outline" size="sm" onClick={() => setPermDialogBarbeiro(barb)} className="flex-1 text-xs border-border">
