@@ -99,6 +99,7 @@ export default function Agendamentos() {
           <h1 className="text-2xl font-display font-bold text-foreground">Agendamentos</h1>
           <p className="text-sm text-muted-foreground mt-1">Gerencie todos os agendamentos</p>
         </div>
+        {podeEditar ? (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
@@ -107,6 +108,7 @@ export default function Agendamentos() {
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader><DialogTitle className="font-display">Novo Agendamento</DialogTitle></DialogHeader>
+
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label>Cliente</Label>
