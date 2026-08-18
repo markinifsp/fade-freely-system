@@ -370,7 +370,7 @@ export function useUpdateBarbearia() {
       ["endereco", "telefone", "hora_abertura", "hora_fechamento", "intervalo_inicio", "intervalo_fim"].forEach((k) => {
         if (payload[k] === "") payload[k] = null;
       });
-      const { data: rows, error } = await supabase.from("barbearias").update(payload).eq("id", id).select("id");
+      const { data: rows, error } = await supabase.from("barbearias").update(payload as never).eq("id", id).select("id");
       if (error) throw error;
       if (!rows || rows.length === 0) throw new Error("Sem permissão para alterar as configurações desta barbearia.");
     },
