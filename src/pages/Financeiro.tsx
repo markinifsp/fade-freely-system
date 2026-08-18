@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAgendamentosByRange, useBarbeiros } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { DollarSign, TrendingUp, Users, Calendar } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Calendar, ChevronDown } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
@@ -21,6 +21,7 @@ export default function Financeiro() {
   const today = new Date();
   const [startDate, setStartDate] = useState(format(startOfMonth(today), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(today, "yyyy-MM-dd"));
+  const [expandido, setExpandido] = useState<string | null>(null);
 
   const { data: allAg = [] } = useAgendamentosByRange(startDate, endDate);
   const { data: barbeiros = [] } = useBarbeiros();
@@ -122,31 +123,81 @@ export default function Financeiro() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
         <div className="p-5 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Comissões dos Barbeiros</h2>
-          <p className="text-xs text-muted-foreground mt-1">Baseado nos serviços do período</p>
+          <p className="text-xs text-muted-foreground mt-1">Clique em um barbeiro para ver os serviços do período</p>
         </div>
         <div className="divide-y divide-border">
           {barbeiros.filter(b => b.ativo).map(barb => {
-            const bAgs = agOk.filter(a => a.barbeiro_id === barb.id);
+            const bAgs = agOk.filter(a => a.barbeiro_id === barb.id)
+              .sort((a, b) => `${a.data} ${a.hora}`.localeCompare(`${b.data} ${b.hora}`));
             const bFat = bAgs.reduce((s, a) => s + Number(a.preco), 0);
             const comissao = (bFat * (barb.comissao || 0)) / 100;
+            const aberto = expandido === barb.id;
             return (
-              <div key={barb.id} className="p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-sm">
-                  {barb.nome.split(" ").map(n => n[0]).join("")}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">{barb.nome}</p>
-                  <p className="text-xs text-muted-foreground">{bAgs.length} serviços • {barb.comissao}% comissão</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">R$ {bFat}</p>
-                  <p className="text-xs text-primary font-medium">R$ {comissao.toFixed(0)} comissão</p>
-                </div>
+              <div key={barb.id}>
+                <button
+                  onClick={() => setExpandido(aberto ? null : barb.id)}
+                  className="w-full p-4 flex items-center gap-4 text-left hover:bg-muted/20 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-sm">
+                    {barb.nome.split(" ").map(n => n[0]).join("")}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">{barb.nome}</p>
+                    <p className="text-xs text-muted-foreground">{bAgs.length} serviços • {barb.comissao}% comissão</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-foreground">R$ {bFat}</p>
+                    <p className="text-xs text-primary font-medium">R$ {comissao.toFixed(0)} comissão</p>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
+                </button>
+                {aberto && (
+                  <div className="bg-muted/10 border-t border-border">
+                    {bAgs.length === 0 ? (
+                      <p className="p-4 text-sm text-muted-foreground">Nenhum serviço no período.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b border-border text-left">
+                              <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Data</th>
+                              <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Hora</th>
+                              <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Cliente</th>
+                              <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Serviço</th>
+                              <th className="p-3 text-xs font-medium text-muted-foreground uppercase text-right">Valor</th>
+                              <th className="p-3 text-xs font-medium text-muted-foreground uppercase text-right">Comissão</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bAgs.map(ag => (
+                              <tr key={ag.id} className="border-b border-border/50">
+                                <td className="p-3 text-muted-foreground">{format(parseISO(ag.data), "dd/MM", { locale: ptBR })}</td>
+                                <td className="p-3 font-medium text-primary">{ag.hora?.substring(0, 5)}</td>
+                                <td className="p-3 text-foreground">{(ag.clientes as any)?.nome || "—"}</td>
+                                <td className="p-3 text-muted-foreground">{(ag.servicos as any)?.nome}</td>
+                                <td className="p-3 text-right font-semibold text-foreground">R$ {ag.preco}</td>
+                                <td className="p-3 text-right text-primary">R$ {((Number(ag.preco) * (barb.comissao || 0)) / 100).toFixed(0)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                          <tfoot>
+                            <tr>
+                              <td colSpan={4} className="p-3 font-semibold text-foreground">Total</td>
+                              <td className="p-3 text-right font-bold text-foreground">R$ {bFat}</td>
+                              <td className="p-3 text-right font-bold text-primary">R$ {comissao.toFixed(0)}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
         </div>
       </motion.div>
+
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-xl shadow-card">
         <div className="p-5 border-b border-border">
