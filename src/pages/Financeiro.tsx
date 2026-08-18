@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAgendamentosByRange, useBarbeiros } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { DollarSign, TrendingUp, Users, Calendar } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Calendar, ChevronDown } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
@@ -21,6 +21,7 @@ export default function Financeiro() {
   const today = new Date();
   const [startDate, setStartDate] = useState(format(startOfMonth(today), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(today, "yyyy-MM-dd"));
+  const [expandido, setExpandido] = useState<string | null>(null);
 
   const { data: allAg = [] } = useAgendamentosByRange(startDate, endDate);
   const { data: barbeiros = [] } = useBarbeiros();
