@@ -429,7 +429,7 @@ export function useDeleteServico() {
 export function useUpdateBarbearia() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; nome?: string; endereco?: string; telefone?: string; hora_abertura?: string; hora_fechamento?: string; intervalo_inicio?: string; intervalo_fim?: string; dias_funcionamento?: number[] }) => {
+    mutationFn: async ({ id, ...data }: { id: string; nome?: string; endereco?: string; telefone?: string; hora_abertura?: string; hora_fechamento?: string; intervalo_inicio?: string; intervalo_fim?: string; dias_funcionamento?: number[]; lembrete_auto?: boolean; lembrete_antecedencia?: number; lembrete_mensagem?: string }) => {
       // campos de hora/texto vazios precisam virar null (Postgres não aceita "")
       const payload: Record<string, unknown> = { ...data };
       ["endereco", "telefone", "hora_abertura", "hora_fechamento", "intervalo_inicio", "intervalo_fim"].forEach((k) => {
