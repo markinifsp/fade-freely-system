@@ -365,9 +365,16 @@ export function useUpdateBarbearia() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...data }: { id: string; nome?: string; endereco?: string; telefone?: string; hora_abertura?: string; hora_fechamento?: string; intervalo_inicio?: string; intervalo_fim?: string; dias_funcionamento?: number[] }) => {
-      const { error } = await supabase.from("barbearias").update(data).eq("id", id);
+      // campos de hora/texto vazios precisam virar null (Postgres não aceita "")
+      const payload: Record<string, unknown> = { ...data };
+      ["endereco", "telefone", "hora_abertura", "hora_fechamento", "intervalo_inicio", "intervalo_fim"].forEach((k) => {
+        if (payload[k] === "") payload[k] = null;
+      });
+      const { data: rows, error } = await supabase.from("barbearias").update(payload).eq("id", id).select("id");
       if (error) throw error;
+      if (!rows || rows.length === 0) throw new Error("Sem permissão para alterar as configurações desta barbearia.");
     },
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["barbearia"] });
       toast.success("Configurações salvas!");
