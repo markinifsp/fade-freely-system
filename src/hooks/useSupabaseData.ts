@@ -219,12 +219,26 @@ export function useCreateServico() {
   });
 }
 
+const normalizeTel = (t?: string | null) => (t || "").replace(/\D/g, "");
+
 export function useCreateCliente() {
   const qc = useQueryClient();
   const { barbeariaId } = useAuth();
   return useMutation({
     mutationFn: async (data: { nome: string; telefone: string; email?: string }) => {
       if (!barbeariaId) throw new Error("Sem barbearia");
+      const { data: existentes } = await supabase
+        .from("clientes")
+        .select("id, telefone, email")
+        .eq("barbearia_id", barbeariaId);
+      const tel = normalizeTel(data.telefone);
+      const mail = (data.email || "").trim().toLowerCase();
+      const dup = (existentes || []).find(
+        (c) =>
+          (tel && normalizeTel(c.telefone) === tel) ||
+          (mail && (c.email || "").trim().toLowerCase() === mail)
+      );
+      if (dup) throw new Error("Já existe um cliente com este telefone ou email.");
       const { error } = await supabase.from("clientes").insert({ ...data, barbearia_id: barbeariaId });
       if (error) throw error;
     },
@@ -235,6 +249,57 @@ export function useCreateCliente() {
     onError: (e) => toast.error(e.message),
   });
 }
+
+export function useUpdateCliente() {
+  const qc = useQueryClient();
+  const { barbeariaId } = useAuth();
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; nome: string; telefone: string; email?: string }) => {
+      if (!barbeariaId) throw new Error("Sem barbearia");
+      const { data: existentes } = await supabase
+        .from("clientes")
+        .select("id, telefone, email")
+        .eq("barbearia_id", barbeariaId)
+        .neq("id", id);
+      const tel = normalizeTel(data.telefone);
+      const mail = (data.email || "").trim().toLowerCase();
+      const dup = (existentes || []).find(
+        (c) =>
+          (tel && normalizeTel(c.telefone) === tel) ||
+          (mail && (c.email || "").trim().toLowerCase() === mail)
+      );
+      if (dup) throw new Error("Já existe um cliente com este telefone ou email.");
+      const { data: rows, error } = await supabase
+        .from("clientes")
+        .update({ nome: data.nome, telefone: data.telefone, email: data.email || null })
+        .eq("id", id)
+        .select("id");
+      if (error) throw error;
+      if (!rows?.length) throw new Error("Sem permissão para editar este cliente.");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clientes"] });
+      toast.success("Cliente atualizado!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+}
+
+export function useDeleteCliente() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("clientes").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clientes"] });
+      toast.success("Cliente removido!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+}
+
 
 export function useCreateAgendamento() {
   const qc = useQueryClient();
@@ -364,7 +429,7 @@ export function useDeleteServico() {
 export function useUpdateBarbearia() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; nome?: string; endereco?: string; telefone?: string; hora_abertura?: string; hora_fechamento?: string; intervalo_inicio?: string; intervalo_fim?: string; dias_funcionamento?: number[] }) => {
+    mutationFn: async ({ id, ...data }: { id: string; nome?: string; endereco?: string; telefone?: string; hora_abertura?: string; hora_fechamento?: string; intervalo_inicio?: string; intervalo_fim?: string; dias_funcionamento?: number[]; lembrete_auto?: boolean; lembrete_antecedencia?: number; lembrete_mensagem?: string }) => {
       // campos de hora/texto vazios precisam virar null (Postgres não aceita "")
       const payload: Record<string, unknown> = { ...data };
       ["endereco", "telefone", "hora_abertura", "hora_fechamento", "intervalo_inicio", "intervalo_fim"].forEach((k) => {

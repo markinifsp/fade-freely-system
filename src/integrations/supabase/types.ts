@@ -95,6 +95,9 @@ export type Database = {
           id: string
           intervalo_fim: string | null
           intervalo_inicio: string | null
+          lembrete_antecedencia: number
+          lembrete_auto: boolean
+          lembrete_mensagem: string
           nome: string
           telefone: string | null
         }
@@ -107,6 +110,9 @@ export type Database = {
           id?: string
           intervalo_fim?: string | null
           intervalo_inicio?: string | null
+          lembrete_antecedencia?: number
+          lembrete_auto?: boolean
+          lembrete_mensagem?: string
           nome: string
           telefone?: string | null
         }
@@ -119,6 +125,9 @@ export type Database = {
           id?: string
           intervalo_fim?: string | null
           intervalo_inicio?: string | null
+          lembrete_antecedencia?: number
+          lembrete_auto?: boolean
+          lembrete_mensagem?: string
           nome?: string
           telefone?: string | null
         }
