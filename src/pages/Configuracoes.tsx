@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { useBarbearia, useUpdateBarbearia } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { Save, Building2 } from "lucide-react";
+import { Save, Building2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 
 const diasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
@@ -19,6 +21,9 @@ export default function Configuracoes() {
     hora_abertura: "09:00", hora_fechamento: "20:00",
     intervalo_inicio: "", intervalo_fim: "",
     dias_funcionamento: [1, 2, 3, 4, 5, 6],
+    lembrete_auto: false,
+    lembrete_antecedencia: 60,
+    lembrete_mensagem: "Olá {nome}, não se esqueça do seu horário marcado hoje às {hora}!",
   });
 
   useEffect(() => {
@@ -32,6 +37,9 @@ export default function Configuracoes() {
         intervalo_inicio: barbearia.intervalo_inicio?.substring(0, 5) || "",
         intervalo_fim: barbearia.intervalo_fim?.substring(0, 5) || "",
         dias_funcionamento: barbearia.dias_funcionamento || [1, 2, 3, 4, 5, 6],
+        lembrete_auto: barbearia.lembrete_auto ?? false,
+        lembrete_antecedencia: barbearia.lembrete_antecedencia ?? 60,
+        lembrete_mensagem: barbearia.lembrete_mensagem || "Olá {nome}, não se esqueça do seu horário marcado hoje às {hora}!",
       });
     }
   }, [barbearia]);
@@ -98,6 +106,31 @@ export default function Configuracoes() {
                 }`}
               >{dia}</button>
             ))}
+          </div>
+        </div>
+
+        <div className="border-t border-border pt-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <MessageCircle className="w-4 h-4 text-primary" />
+            <h3 className="font-display font-semibold text-foreground">Lembrete de WhatsApp</h3>
+          </div>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label>Envio automático</Label>
+              <p className="text-xs text-muted-foreground">Quando ativo, o lembrete é disparado automaticamente pela automação (n8n) antes do horário.</p>
+            </div>
+            <Switch checked={config.lembrete_auto} onCheckedChange={(v) => setConfig({ ...config, lembrete_auto: v })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Antecedência (minutos)</Label>
+            <Input type="number" min={5} max={1440} step={5} value={config.lembrete_antecedencia}
+              onChange={e => setConfig({ ...config, lembrete_antecedencia: Number(e.target.value) })} />
+          </div>
+          <div className="space-y-2">
+            <Label>Mensagem</Label>
+            <Textarea rows={3} value={config.lembrete_mensagem}
+              onChange={e => setConfig({ ...config, lembrete_mensagem: e.target.value })} />
+            <p className="text-xs text-muted-foreground">Use {"{nome}"} e {"{hora}"} para personalizar.</p>
           </div>
         </div>
 
