@@ -337,16 +337,47 @@ export function useCreateAgendamento() {
 export function useUpdateAgendamentoStatus() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("agendamentos").update({ status }).eq("id", id);
+    mutationFn: async ({ id, status, forma_pagamento, valor_extra, obs_pagamento }: {
+      id: string;
+      status: string;
+      forma_pagamento?: string | null;
+      valor_extra?: number;
+      obs_pagamento?: string | null;
+    }) => {
+      const payload: Record<string, unknown> = { status };
+      if (forma_pagamento !== undefined) payload.forma_pagamento = forma_pagamento;
+      if (valor_extra !== undefined) payload.valor_extra = valor_extra;
+      if (obs_pagamento !== undefined) payload.obs_pagamento = obs_pagamento;
+      const { error } = await supabase.from("agendamentos").update(payload as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agendamentos"] });
+      qc.invalidateQueries({ queryKey: ["agendamentos-range"] });
+      qc.invalidateQueries({ queryKey: ["historico-cliente"] });
     },
     onError: (e) => toast.error(e.message),
   });
 }
+
+export function useHistoricoCliente(clienteId?: string) {
+  return useQuery({
+    queryKey: ["historico-cliente", clienteId],
+    queryFn: async () => {
+      if (!clienteId) return [];
+      const { data, error } = await supabase
+        .from("agendamentos")
+        .select("*, barbeiros(nome), servicos(nome)")
+        .eq("cliente_id", clienteId)
+        .order("data", { ascending: false })
+        .order("hora", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clienteId,
+  });
+}
+
 
 export function useUpdateBarbeiroPermissoes() {
   const qc = useQueryClient();
