@@ -22,11 +22,14 @@ export type Database = {
           created_at: string | null
           data: string
           duracao: number
+          forma_pagamento: string | null
           hora: string
           id: string
+          obs_pagamento: string | null
           preco: number
           servico_id: string
           status: string | null
+          valor_extra: number
         }
         Insert: {
           barbearia_id: string
@@ -35,11 +38,14 @@ export type Database = {
           created_at?: string | null
           data: string
           duracao: number
+          forma_pagamento?: string | null
           hora: string
           id?: string
+          obs_pagamento?: string | null
           preco: number
           servico_id: string
           status?: string | null
+          valor_extra?: number
         }
         Update: {
           barbearia_id?: string
@@ -48,11 +54,14 @@ export type Database = {
           created_at?: string | null
           data?: string
           duracao?: number
+          forma_pagamento?: string | null
           hora?: string
           id?: string
+          obs_pagamento?: string | null
           preco?: number
           servico_id?: string
           status?: string | null
+          valor_extra?: number
         }
         Relationships: [
           {
