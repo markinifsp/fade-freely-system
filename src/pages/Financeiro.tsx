@@ -83,8 +83,8 @@ export default function Financeiro() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Faturamento Hoje" value={`R$ ${fatHoje}`} icon={DollarSign} highlight />
-        <StatCard title="Faturamento Período" value={`R$ ${fatTotal}`} icon={TrendingUp} />
+        <StatCard title="Faturamento Hoje" value={`R$ ${fatHoje.toFixed(2)}`} icon={DollarSign} highlight />
+        <StatCard title="Faturamento Período" value={`R$ ${fatTotal.toFixed(2)}`} icon={TrendingUp} />
         <StatCard title="Serviços Hoje" value={agHojeOk.length} icon={Calendar} />
         <StatCard title="Serviços Período" value={agOk.length} icon={Users} />
       </div>
