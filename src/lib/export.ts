@@ -49,22 +49,18 @@ export function exportPDF(filename: string, title: string, sections: ReportSecti
   });
   y += 6;
   sections.forEach((s) => {
+    doc.setFontSize(11);
+    doc.text(s.title, 40, y);
     autoTable(doc, {
-      startY: y,
+      startY: y + 8,
       head: [s.head],
       body: s.rows.map((r) => r.map(String)),
       styles: { fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [30, 30, 30] },
       margin: { left: 40, right: 40 },
-      didDrawPage: () => undefined,
-      willDrawPage: () => undefined,
-      // section caption
-      beforePageContent: undefined as never,
     });
     // @ts-expect-error autotable augments doc
-    y = doc.lastAutoTable.finalY + 26;
-    doc.setFontSize(10);
+    y = doc.lastAutoTable.finalY + 28;
   });
-  // add section titles above each table is handled by prefixing rows; keep simple
   doc.save(filename);
 }
