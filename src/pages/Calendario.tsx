@@ -280,11 +280,19 @@ export default function Calendario() {
                 <p><span className="text-muted-foreground">Valor:</span> R$ {selectedAg.preco}</p>
                 <p><span className="text-muted-foreground">Status:</span> {selectedAg.status}</p>
               </div>
+              {selectedAg.status === "concluido" && (
+                <div className="text-sm rounded-lg border border-border bg-muted/20 p-3">
+                  <p><span className="text-muted-foreground">Pagamento:</span> {formaLabel((selectedAg as any).forma_pagamento)}</p>
+                  {Number((selectedAg as any).valor_extra) > 0 && (
+                    <p className="text-primary">+ R$ {Number((selectedAg as any).valor_extra).toFixed(2)} {(selectedAg as any).obs_pagamento || "extra"}</p>
+                  )}
+                </div>
+              )}
               {selectedAg.status === "confirmado" && podeEditar && (
                 <div className="flex gap-2">
                   <Button
                     className="flex-1 bg-success/20 text-success hover:bg-success/30 border border-success/30"
-                    onClick={() => updateStatus.mutate({ id: selectedAg.id, status: "concluido" }, { onSuccess: () => setSelectedAg(null) })}
+                    onClick={() => { setConcluindo(selectedAg); setSelectedAg(null); }}
                   >
                     <Check className="w-4 h-4 mr-2" /> Concluir
                   </Button>
@@ -297,6 +305,7 @@ export default function Calendario() {
                   </Button>
                 </div>
               )}
+
             </div>
           )}
         </DialogContent>
