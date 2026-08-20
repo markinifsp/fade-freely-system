@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useAgendamentosByRange, useBarbeiros } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { DollarSign, TrendingUp, Users, Calendar, ChevronDown } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Calendar, ChevronDown, FileDown, FileText } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FORMAS_PAGAMENTO, formaLabel } from "@/components/ConcluirAgendamentoDialog";
-import { format, subDays, startOfMonth, eachDayOfInterval, parseISO } from "date-fns";
+import { exportCSV, exportPDF, type ReportSection } from "@/lib/export";
+import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const CHART_COLORS = [
