@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useAgendamentosByRange, useBarbeiros } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { DollarSign, TrendingUp, Users, Calendar, ChevronDown } from "lucide-react";
+import { DollarSign, TrendingUp, Users, Calendar, ChevronDown, FileDown, FileText } from "lucide-react";
 import { StatCard } from "@/components/StatCard";
+import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FORMAS_PAGAMENTO, formaLabel } from "@/components/ConcluirAgendamentoDialog";
-import { format, subDays, startOfMonth, eachDayOfInterval, parseISO } from "date-fns";
+import { exportCSV, exportPDF, type ReportSection } from "@/lib/export";
+import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const CHART_COLORS = [
@@ -63,14 +65,67 @@ export default function Financeiro() {
   const agHojeOk = allAg.filter(a => a.data === todayStr && a.status !== "cancelado");
   const fatHoje = agHojeOk.reduce((s, a) => s + valorTotalAg(a), 0);
 
+  // ---- Relatório consolidado ----
+  const periodoLabel = `${format(parseISO(startDate), "dd/MM/yyyy")} a ${format(parseISO(endDate), "dd/MM/yyyy")}`;
+  const brl = (v: number) => `R$ ${v.toFixed(2)}`;
+
+  const buildSections = (): ReportSection[] => {
+    const formasRows = porForma.map(f => [f.label, f.qtd, brl(f.total)]);
+    if (semForma.length) {
+      formasRows.push([
+        "Sem forma informada",
+        semForma.length,
+        brl(semForma.reduce((s, a) => s + valorTotalAg(a), 0)),
+      ]);
+    }
+    formasRows.push(["TOTAL CONCLUÍDO", agPagos.length, brl(agPagos.reduce((s, a) => s + valorTotalAg(a), 0))]);
+
+    const comissoesRows = barbeiros.filter(b => b.ativo).map(barb => {
+      const bAgs = agOk.filter(a => a.barbeiro_id === barb.id);
+      const bFat = bAgs.reduce((s, a) => s + valorTotalAg(a), 0);
+      return [barb.nome, bAgs.length, `${barb.comissao || 0}%`, brl(bFat), brl((bFat * (barb.comissao || 0)) / 100)];
+    });
+    const totalComissao = comissoesRows.reduce((s, r) => s + Number(String(r[4]).replace("R$ ", "")), 0);
+    comissoesRows.push(["TOTAL", agOk.length, "", brl(fatTotal), brl(totalComissao)]);
+
+    return [
+      {
+        title: "Resumo do período",
+        head: ["Indicador", "Valor"],
+        rows: [
+          ["Faturamento total", brl(fatTotal)],
+          ["Entradas extras", brl(totalExtras)],
+          ["Atendimentos", agOk.length],
+          ["Atendimentos concluídos", agPagos.length],
+          ["Ticket médio", brl(agOk.length ? fatTotal / agOk.length : 0)],
+        ],
+      },
+      { title: "Por forma de pagamento", head: ["Forma", "Qtd", "Total"], rows: formasRows },
+      { title: "Comissões dos barbeiros", head: ["Barbeiro", "Serviços", "%", "Faturamento", "Comissão"], rows: comissoesRows },
+    ];
+  };
+
+  const meta = ["Relatório consolidado — Financeiro", `Período: ${periodoLabel}`, `Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm")}`];
+  const fileBase = `relatorio-financeiro-${startDate}_a_${endDate}`;
+
+  const mesAtual = () => {
+    setStartDate(format(startOfMonth(today), "yyyy-MM-dd"));
+    setEndDate(format(endOfMonth(today), "yyyy-MM-dd"));
+  };
+  const mesAnterior = () => {
+    const ref = subDays(startOfMonth(today), 1);
+    setStartDate(format(startOfMonth(ref), "yyyy-MM-dd"));
+    setEndDate(format(endOfMonth(ref), "yyyy-MM-dd"));
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-foreground">Financeiro</h1>
           <p className="text-sm text-muted-foreground mt-1">Acompanhe o faturamento e comissões</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">De</Label>
             <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[150px] h-9 text-sm" />
@@ -79,8 +134,17 @@ export default function Financeiro() {
             <Label className="text-xs text-muted-foreground">Até</Label>
             <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[150px] h-9 text-sm" />
           </div>
+          <Button variant="outline" size="sm" className="h-9" onClick={mesAtual}>Mês atual</Button>
+          <Button variant="outline" size="sm" className="h-9" onClick={mesAnterior}>Mês anterior</Button>
+          <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportCSV(`${fileBase}.csv`, buildSections(), meta)}>
+            <FileDown className="w-4 h-4" /> CSV
+          </Button>
+          <Button size="sm" className="h-9 gap-1.5" onClick={() => exportPDF(`${fileBase}.pdf`, "Relatório Financeiro", buildSections(), meta.slice(1))}>
+            <FileText className="w-4 h-4" /> PDF
+          </Button>
         </div>
       </div>
+
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Faturamento Hoje" value={`R$ ${fatHoje.toFixed(2)}`} icon={DollarSign} highlight />
