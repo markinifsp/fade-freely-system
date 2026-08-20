@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ConcluirAgendamentoDialog, formaLabel } from "@/components/ConcluirAgendamentoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -67,6 +68,7 @@ export default function Calendario() {
   const createAg = useCreateAgendamento();
 
   const [selectedAg, setSelectedAg] = useState<any>(null);
+  const [concluindo, setConcluindo] = useState<any>(null);
   const [newSlot, setNewSlot] = useState<{ barbeiroId: string; hora: string } | null>(null);
   const [newForm, setNewForm] = useState({ clienteId: "", servicoId: "" });
 
@@ -355,6 +357,7 @@ export default function Calendario() {
           )}
         </DialogContent>
       </Dialog>
+      <ConcluirAgendamentoDialog agendamento={concluindo} onOpenChange={(o) => !o && setConcluindo(null)} />
     </div>
   );
 }
