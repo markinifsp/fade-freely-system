@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from "recharts";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FORMAS_PAGAMENTO, formaLabel } from "@/components/ConcluirAgendamentoDialog";
 import { format, subDays, startOfMonth, eachDayOfInterval, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -28,20 +29,31 @@ export default function Financeiro() {
   const { role } = useAuth();
 
   const agOk = allAg.filter(a => a.status !== "cancelado");
-  const fatTotal = agOk.reduce((s, a) => s + Number(a.preco), 0);
+  const valorTotalAg = (a: any) => Number(a.preco) + Number(a.valor_extra || 0);
+  const fatTotal = agOk.reduce((s, a) => s + valorTotalAg(a), 0);
+  const totalExtras = agOk.reduce((s, a) => s + Number((a as any).valor_extra || 0), 0);
+
+  // Breakdown por forma de pagamento (apenas concluídos)
+  const agPagos = agOk.filter(a => a.status === "concluido");
+  const porForma = FORMAS_PAGAMENTO.map(f => ({
+    ...f,
+    total: agPagos.filter(a => (a as any).forma_pagamento === f.value).reduce((s, a) => s + valorTotalAg(a), 0),
+    qtd: agPagos.filter(a => (a as any).forma_pagamento === f.value).length,
+  }));
+  const semForma = agPagos.filter(a => !(a as any).forma_pagamento);
 
   // Daily revenue line chart
   const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
   const fatDiario = days.map(d => {
     const dateStr = format(d, "yyyy-MM-dd");
-    const val = allAg.filter(a => a.data === dateStr && a.status !== "cancelado").reduce((s, a) => s + Number(a.preco), 0);
+    const val = allAg.filter(a => a.data === dateStr && a.status !== "cancelado").reduce((s, a) => s + valorTotalAg(a), 0);
     return { dia: format(d, days.length > 20 ? "dd" : "dd/MM"), valor: val };
   });
 
   // Barber performance
   const barbPerf = barbeiros.filter(b => b.ativo).map(barb => {
     const bAgs = agOk.filter(a => a.barbeiro_id === barb.id);
-    const fat = bAgs.reduce((s, a) => s + Number(a.preco), 0);
+    const fat = bAgs.reduce((s, a) => s + valorTotalAg(a), 0);
     const comissao = (fat * (barb.comissao || 0)) / 100;
     return { nome: barb.nome.split(" ")[0], faturamento: fat, comissao: Math.round(comissao), servicos: bAgs.length };
   });
@@ -49,7 +61,7 @@ export default function Financeiro() {
   // Today's appointments for the commission table
   const todayStr = format(today, "yyyy-MM-dd");
   const agHojeOk = allAg.filter(a => a.data === todayStr && a.status !== "cancelado");
-  const fatHoje = agHojeOk.reduce((s, a) => s + Number(a.preco), 0);
+  const fatHoje = agHojeOk.reduce((s, a) => s + valorTotalAg(a), 0);
 
   return (
     <div className="space-y-6">
@@ -76,6 +88,31 @@ export default function Financeiro() {
         <StatCard title="Serviços Hoje" value={agHojeOk.length} icon={Calendar} />
         <StatCard title="Serviços Período" value={agOk.length} icon={Users} />
       </div>
+
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <div className="flex items-baseline justify-between mb-4">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-foreground">Fluxo por forma de pagamento</h2>
+            <p className="text-xs text-muted-foreground">Atendimentos concluídos no período</p>
+          </div>
+          <p className="text-xs text-muted-foreground">Entradas extras: <span className="text-primary font-semibold">R$ {totalExtras.toFixed(2)}</span></p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {porForma.map(f => {
+            const Icon = f.icon;
+            return (
+              <div key={f.value} className="rounded-lg border border-border p-3">
+                <p className="flex items-center gap-2 text-xs text-muted-foreground"><Icon className="w-3.5 h-3.5" /> {f.label}</p>
+                <p className="text-lg font-semibold text-foreground mt-1">R$ {f.total.toFixed(2)}</p>
+                <p className="text-[10px] text-muted-foreground">{f.qtd} atendimentos</p>
+              </div>
+            );
+          })}
+        </div>
+        {semForma.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-3">{semForma.length} atendimento(s) concluído(s) sem forma de pagamento informada.</p>
+        )}
+      </motion.div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -129,7 +166,7 @@ export default function Financeiro() {
           {barbeiros.filter(b => b.ativo).map(barb => {
             const bAgs = agOk.filter(a => a.barbeiro_id === barb.id)
               .sort((a, b) => `${a.data} ${a.hora}`.localeCompare(`${b.data} ${b.hora}`));
-            const bFat = bAgs.reduce((s, a) => s + Number(a.preco), 0);
+            const bFat = bAgs.reduce((s, a) => s + valorTotalAg(a), 0);
             const comissao = (bFat * (barb.comissao || 0)) / 100;
             const aberto = expandido === barb.id;
             return (
@@ -146,7 +183,7 @@ export default function Financeiro() {
                     <p className="text-xs text-muted-foreground">{bAgs.length} serviços • {barb.comissao}% comissão</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-foreground">R$ {bFat}</p>
+                    <p className="text-sm font-semibold text-foreground">R$ {bFat.toFixed(2)}</p>
                     <p className="text-xs text-primary font-medium">R$ {comissao.toFixed(0)} comissão</p>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
@@ -174,8 +211,7 @@ export default function Financeiro() {
                                 <td className="p-3 text-muted-foreground">{format(parseISO(ag.data), "dd/MM", { locale: ptBR })}</td>
                                 <td className="p-3 font-medium text-primary">{ag.hora?.substring(0, 5)}</td>
                                 <td className="p-3 text-foreground">{(ag.clientes as any)?.nome || "—"}</td>
-                                <td className="p-3 text-muted-foreground">{(ag.servicos as any)?.nome}</td>
-                                <td className="p-3 text-right font-semibold text-foreground">R$ {ag.preco}</td>
+                
                                 <td className="p-3 text-right text-primary">R$ {((Number(ag.preco) * (barb.comissao || 0)) / 100).toFixed(0)}</td>
                               </tr>
                             ))}
@@ -183,7 +219,7 @@ export default function Financeiro() {
                           <tfoot>
                             <tr>
                               <td colSpan={4} className="p-3 font-semibold text-foreground">Total</td>
-                              <td className="p-3 text-right font-bold text-foreground">R$ {bFat}</td>
+                              <td className="p-3 text-right font-bold text-foreground">R$ {bFat.toFixed(2)}</td>
                               <td className="p-3 text-right font-bold text-primary">R$ {comissao.toFixed(0)}</td>
                             </tr>
                           </tfoot>
@@ -211,6 +247,7 @@ export default function Financeiro() {
                 <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Cliente</th>
                 <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Serviço</th>
                 <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Barbeiro</th>
+                <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Pagamento</th>
                 <th className="p-3 text-xs font-medium text-muted-foreground uppercase text-right">Valor</th>
               </tr>
             </thead>
@@ -221,14 +258,15 @@ export default function Financeiro() {
                   <td className="p-3 text-foreground">{(ag.clientes as any)?.nome || "—"}</td>
                   <td className="p-3 text-muted-foreground">{(ag.servicos as any)?.nome}</td>
                   <td className="p-3 text-muted-foreground">{(ag.barbeiros as any)?.nome}</td>
-                  <td className="p-3 text-right font-semibold text-foreground">R$ {ag.preco}</td>
+                  <td className="p-3 text-muted-foreground">{ag.status === "concluido" ? formaLabel((ag as any).forma_pagamento) : "—"}</td>
+                  <td className="p-3 text-right font-semibold text-foreground">R$ {valorTotalAg(ag).toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-border">
-                <td colSpan={4} className="p-3 font-semibold text-foreground">Total</td>
-                <td className="p-3 text-right font-bold text-primary text-lg">R$ {fatHoje}</td>
+                <td colSpan={5} className="p-3 font-semibold text-foreground">Total</td>
+                <td className="p-3 text-right font-bold text-primary text-lg">R$ {fatHoje.toFixed(2)}</td>
               </tr>
             </tfoot>
           </table>
