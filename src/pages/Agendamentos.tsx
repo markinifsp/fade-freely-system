@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { ConcluirAgendamentoDialog, formaLabel } from "@/components/ConcluirAgendamentoDialog";
 
 const statusColors: Record<string, string> = {
   confirmado: "bg-info/20 text-info border-info/30",
@@ -39,6 +40,7 @@ export default function Agendamentos() {
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [concluindo, setConcluindo] = useState<any>(null);
   const [formData, setFormData] = useState({
     clienteId: "", barbeiroId: "", servicoId: "", data: new Date().toISOString().split("T")[0], hora: "09:00"
   });
@@ -233,6 +235,8 @@ export default function Agendamentos() {
           ))
         )}
       </div>
+
+      <ConcluirAgendamentoDialog agendamento={concluindo} onOpenChange={(o) => !o && setConcluindo(null)} />
     </div>
   );
 }
