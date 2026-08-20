@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { format, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ConcluirAgendamentoDialog, formaLabel } from "@/components/ConcluirAgendamentoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 
@@ -67,6 +68,7 @@ export default function Calendario() {
   const createAg = useCreateAgendamento();
 
   const [selectedAg, setSelectedAg] = useState<any>(null);
+  const [concluindo, setConcluindo] = useState<any>(null);
   const [newSlot, setNewSlot] = useState<{ barbeiroId: string; hora: string } | null>(null);
   const [newForm, setNewForm] = useState({ clienteId: "", servicoId: "" });
 
@@ -280,11 +282,19 @@ export default function Calendario() {
                 <p><span className="text-muted-foreground">Valor:</span> R$ {selectedAg.preco}</p>
                 <p><span className="text-muted-foreground">Status:</span> {selectedAg.status}</p>
               </div>
+              {selectedAg.status === "concluido" && (
+                <div className="text-sm rounded-lg border border-border bg-muted/20 p-3">
+                  <p><span className="text-muted-foreground">Pagamento:</span> {formaLabel((selectedAg as any).forma_pagamento)}</p>
+                  {Number((selectedAg as any).valor_extra) > 0 && (
+                    <p className="text-primary">+ R$ {Number((selectedAg as any).valor_extra).toFixed(2)} {(selectedAg as any).obs_pagamento || "extra"}</p>
+                  )}
+                </div>
+              )}
               {selectedAg.status === "confirmado" && podeEditar && (
                 <div className="flex gap-2">
                   <Button
                     className="flex-1 bg-success/20 text-success hover:bg-success/30 border border-success/30"
-                    onClick={() => updateStatus.mutate({ id: selectedAg.id, status: "concluido" }, { onSuccess: () => setSelectedAg(null) })}
+                    onClick={() => { setConcluindo(selectedAg); setSelectedAg(null); }}
                   >
                     <Check className="w-4 h-4 mr-2" /> Concluir
                   </Button>
@@ -297,6 +307,7 @@ export default function Calendario() {
                   </Button>
                 </div>
               )}
+
             </div>
           )}
         </DialogContent>
@@ -346,6 +357,7 @@ export default function Calendario() {
           )}
         </DialogContent>
       </Dialog>
+      <ConcluirAgendamentoDialog agendamento={concluindo} onOpenChange={(o) => !o && setConcluindo(null)} />
     </div>
   );
 }

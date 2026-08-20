@@ -7,7 +7,8 @@ import {
   useAgendamentos,
   useBarbearia,
 } from "@/hooks/useSupabaseData";
-import { Plus, Phone, Calendar, Search, User, KeyRound, Pencil, Trash2, MessageCircle } from "lucide-react";
+import { Plus, Phone, Calendar, Search, User, KeyRound, Pencil, Trash2, MessageCircle, History } from "lucide-react";
+import { HistoricoClienteDialog } from "@/components/HistoricoClienteDialog";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
@@ -31,6 +32,7 @@ export default function Clientes() {
   const [form, setForm] = useState({ nome: "", telefone: "", email: "" });
   const [editando, setEditando] = useState<{ id: string; nome: string; telefone: string; email: string } | null>(null);
   const [excluindo, setExcluindo] = useState<{ id: string; nome: string } | null>(null);
+  const [historico, setHistorico] = useState<{ id: string; nome: string } | null>(null);
 
   const createCliente = useCreateCliente();
   const updateCliente = useUpdateCliente();
@@ -137,6 +139,10 @@ export default function Clientes() {
                     <p className="text-sm font-semibold text-primary">R$ {totalGasto}</p>
                     <p className="text-[10px] text-muted-foreground">total gasto</p>
                   </div>
+                  <Button variant="ghost" size="sm" title="Ver histórico"
+                    onClick={() => setHistorico({ id: cli.id, nome: cli.nome })}>
+                    <History className="w-4 h-4" />
+                  </Button>
                   {hojeAg && (
                     <Button variant="ghost" size="sm" title="Enviar lembrete no WhatsApp"
                       onClick={() => enviarWhats(cli.telefone, cli.nome, hojeAg.hora)}>
@@ -195,6 +201,8 @@ export default function Clientes() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <HistoricoClienteDialog cliente={historico} onOpenChange={(o) => !o && setHistorico(null)} />
     </div>
   );
 }

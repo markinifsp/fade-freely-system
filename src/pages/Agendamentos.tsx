@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import { ConcluirAgendamentoDialog, formaLabel } from "@/components/ConcluirAgendamentoDialog";
 
 const statusColors: Record<string, string> = {
   confirmado: "bg-info/20 text-info border-info/30",
@@ -39,6 +40,7 @@ export default function Agendamentos() {
   const [filtroBarbeiro, setFiltroBarbeiro] = useState("todos");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [concluindo, setConcluindo] = useState<any>(null);
   const [formData, setFormData] = useState({
     clienteId: "", barbeiroId: "", servicoId: "", data: new Date().toISOString().split("T")[0], hora: "09:00"
   });
@@ -213,7 +215,7 @@ export default function Agendamentos() {
                 <p className="text-sm font-semibold text-foreground">R$ {ag.preco}</p>
                 {ag.status === "confirmado" && podeEditar && (
                   <div className="flex gap-1 ml-2">
-                    <button onClick={() => updateStatus.mutate({ id: ag.id, status: "concluido" })} className="w-7 h-7 rounded-md bg-success/20 text-success hover:bg-success/30 flex items-center justify-center transition-colors">
+                    <button onClick={() => setConcluindo(ag)} title="Fechar atendimento" className="w-7 h-7 rounded-md bg-success/20 text-success hover:bg-success/30 flex items-center justify-center transition-colors">
                       <Check className="w-3.5 h-3.5" />
                     </button>
                     <button onClick={() => updateStatus.mutate({ id: ag.id, status: "cancelado" })} className="w-7 h-7 rounded-md bg-destructive/20 text-destructive hover:bg-destructive/30 flex items-center justify-center transition-colors">
@@ -221,11 +223,20 @@ export default function Agendamentos() {
                     </button>
                   </div>
                 )}
+                {ag.status === "concluido" && (
+                  <span className="text-[10px] text-muted-foreground ml-1">
+                    {formaLabel(ag.forma_pagamento)}
+                    {Number(ag.valor_extra) > 0 && ` +R$ ${Number(ag.valor_extra).toFixed(2)}`}
+                  </span>
+                )}
+
               </div>
             </motion.div>
           ))
         )}
       </div>
+
+      <ConcluirAgendamentoDialog agendamento={concluindo} onOpenChange={(o) => !o && setConcluindo(null)} />
     </div>
   );
 }
