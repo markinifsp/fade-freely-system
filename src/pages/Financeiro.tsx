@@ -211,8 +211,16 @@ export default function Financeiro() {
                                 <td className="p-3 text-muted-foreground">{format(parseISO(ag.data), "dd/MM", { locale: ptBR })}</td>
                                 <td className="p-3 font-medium text-primary">{ag.hora?.substring(0, 5)}</td>
                                 <td className="p-3 text-foreground">{(ag.clientes as any)?.nome || "—"}</td>
-                
-                                <td className="p-3 text-right text-primary">R$ {((Number(ag.preco) * (barb.comissao || 0)) / 100).toFixed(0)}</td>
+                                <td className="p-3 text-muted-foreground">
+                                  {(ag.servicos as any)?.nome}
+                                  {Number((ag as any).valor_extra) > 0 && (
+                                    <span className="block text-[10px] text-primary">+R$ {Number((ag as any).valor_extra).toFixed(2)} {(ag as any).obs_pagamento || "extra"}</span>
+                                  )}
+                                  <span className="block text-[10px] text-muted-foreground">{ag.status === "concluido" ? formaLabel((ag as any).forma_pagamento) : "—"}</span>
+                                </td>
+                                <td className="p-3 text-right font-semibold text-foreground">R$ {valorTotalAg(ag).toFixed(2)}</td>
+                                <td className="p-3 text-right text-primary">R$ {((valorTotalAg(ag) * (barb.comissao || 0)) / 100).toFixed(0)}</td>
+
                               </tr>
                             ))}
                           </tbody>
