@@ -128,18 +128,18 @@ export default function Financeiro() {
         <div className="flex flex-wrap items-end gap-2">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">De</Label>
-            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 min-w-[130px] sm:flex-none">
             <Label className="text-xs text-muted-foreground">Até</Label>
-            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
-          <Button variant="outline" size="sm" className="h-9" onClick={mesAtual}>Mês atual</Button>
-          <Button variant="outline" size="sm" className="h-9" onClick={mesAnterior}>Mês anterior</Button>
-          <Button variant="outline" size="sm" className="h-9 gap-1.5" onClick={() => exportCSV(`${fileBase}.csv`, buildSections(), meta)}>
+          <Button variant="outline" size="sm" className="h-9 flex-1 sm:flex-none" onClick={mesAtual}>Mês atual</Button>
+          <Button variant="outline" size="sm" className="h-9 flex-1 sm:flex-none" onClick={mesAnterior}>Mês anterior</Button>
+          <Button variant="outline" size="sm" className="h-9 gap-1.5 flex-1 sm:flex-none" onClick={() => exportCSV(`${fileBase}.csv`, buildSections(), meta)}>
             <FileDown className="w-4 h-4" /> CSV
           </Button>
-          <Button size="sm" className="h-9 gap-1.5" onClick={() => exportPDF(`${fileBase}.pdf`, "Relatório Financeiro", buildSections(), meta.slice(1))}>
+          <Button size="sm" className="h-9 gap-1.5 flex-1 sm:flex-none" onClick={() => exportPDF(`${fileBase}.pdf`, "Relatório Financeiro", buildSections(), meta.slice(1))}>
             <FileText className="w-4 h-4" /> PDF
           </Button>
         </div>
