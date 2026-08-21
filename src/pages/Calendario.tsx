@@ -149,9 +149,9 @@ export default function Calendario() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Calendário</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Calendário</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {podeEditar
               ? "Clique num horário vago para agendar ou num agendamento para gerenciar"
               : "Visualização somente leitura da agenda"}
@@ -159,7 +159,7 @@ export default function Calendario() {
         </div>
         {!soMinhaAgenda && (
           <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
               {barbeirosAtivos.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
@@ -169,14 +169,14 @@ export default function Calendario() {
 
       </div>
 
-      <div className="flex items-center justify-center gap-4 bg-card border border-border rounded-xl p-3">
-        <Button variant="outline" size="icon" onClick={() => setSelectedDate(d => subDays(d, 1))}><ChevronLeft className="w-4 h-4" /></Button>
-        <div className="text-center min-w-[200px]">
-          <p className="font-display font-semibold text-foreground capitalize">{format(selectedDate, "EEEE", { locale: ptBR })}</p>
-          <p className="text-sm text-muted-foreground">{format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
+      <div className="flex items-center justify-center gap-2 sm:gap-4 bg-card border border-border rounded-xl p-3">
+        <Button variant="outline" size="icon" className="shrink-0" onClick={() => setSelectedDate(d => subDays(d, 1))}><ChevronLeft className="w-4 h-4" /></Button>
+        <div className="text-center min-w-0 flex-1 sm:flex-none sm:min-w-[200px]">
+          <p className="font-display font-semibold text-foreground capitalize truncate">{format(selectedDate, "EEEE", { locale: ptBR })}</p>
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">{format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
         </div>
-        <Button variant="outline" size="icon" onClick={() => setSelectedDate(d => addDays(d, 1))}><ChevronRight className="w-4 h-4" /></Button>
-        <Button variant="outline" size="sm" onClick={() => setSelectedDate(new Date())}>Hoje</Button>
+        <Button variant="outline" size="icon" className="shrink-0" onClick={() => setSelectedDate(d => addDays(d, 1))}><ChevronRight className="w-4 h-4" /></Button>
+        <Button variant="outline" size="sm" className="shrink-0" onClick={() => setSelectedDate(new Date())}>Hoje</Button>
       </div>
 
       {isLoading ? (
