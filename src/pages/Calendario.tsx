@@ -183,7 +183,9 @@ export default function Calendario() {
         <div className="text-center py-12 text-muted-foreground">Carregando...</div>
       ) : (
         <div className="bg-card border border-border rounded-xl overflow-hidden shadow-card">
-          <div className="grid border-b border-border" style={{ gridTemplateColumns: `80px repeat(${filteredBarbeiros.length}, 1fr)` }}>
+        <div className="overflow-x-auto scrollbar-thin">
+        <div className="min-w-max">
+          <div className="grid border-b border-border" style={{ gridTemplateColumns: `56px repeat(${filteredBarbeiros.length}, minmax(120px, 1fr))` }}>
             <div className="p-3 flex items-center justify-center border-r border-border"><Clock className="w-4 h-4 text-muted-foreground" /></div>
             {filteredBarbeiros.map(b => {
               const hasDayBlock = bloqueios.some((bl: any) => bl.barbeiro_id === b.id && bl.dia_inteiro);
