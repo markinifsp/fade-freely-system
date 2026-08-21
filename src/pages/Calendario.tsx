@@ -205,12 +205,12 @@ export default function Calendario() {
             })}
           </div>
 
-          <div className="max-h-[500px] overflow-y-auto scrollbar-thin">
+          <div className="max-h-[60vh] sm:max-h-[500px] overflow-y-auto scrollbar-thin">
             {timeSlots.map(hora => (
               <div
                 key={hora}
                 className="grid border-b border-border/50 hover:bg-muted/10 transition-colors"
-                style={{ gridTemplateColumns: `80px repeat(${filteredBarbeiros.length}, 1fr)` }}
+                style={{ gridTemplateColumns: `56px repeat(${filteredBarbeiros.length}, minmax(120px, 1fr))` }}
               >
                 <div className="p-2 text-xs font-medium text-muted-foreground text-center border-r border-border flex items-center justify-center">{hora}</div>
                 {filteredBarbeiros.map(b => {
