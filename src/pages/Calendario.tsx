@@ -261,6 +261,8 @@ export default function Calendario() {
             ))}
           </div>
         </div>
+        </div>
+        </div>
       )}
 
       <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
