@@ -130,13 +130,13 @@ export function HistoricoClienteDialog({
           </div>
         </div>
 
-        <div className="max-h-[45vh] overflow-y-auto rounded-lg border border-border">
+        <div className="max-h-[45vh] overflow-auto rounded-lg border border-border">
           {isLoading ? (
             <p className="p-4 text-sm text-muted-foreground">Carregando...</p>
           ) : filtrado.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">Nenhum atendimento no filtro selecionado.</p>
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full min-w-[600px] text-sm">
               <thead className="sticky top-0 bg-card">
                 <tr className="border-b border-border text-left">
                   <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Data</th>
