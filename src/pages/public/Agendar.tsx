@@ -135,13 +135,13 @@ export default function Agendar() {
     <PublicLayout>
       <div className="space-y-6">
         <div className="text-center">
-          <h1 className="font-display text-3xl font-bold">{barbearia?.nome || "Agendar horário"}</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold">{barbearia?.nome || "Agendar horário"}</h1>
           <p className="text-muted-foreground mt-1">
             {["Escolha um serviço", "Escolha o barbeiro", "Escolha data e hora", "Confirme"][step - 1]}
           </p>
           <div className="flex justify-center gap-2 mt-4">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className={`h-1.5 w-12 rounded-full ${n <= step ? "bg-primary" : "bg-secondary"}`} />
+              <div key={n} className={`h-1.5 w-8 sm:w-12 rounded-full ${n <= step ? "bg-primary" : "bg-secondary"}`} />
             ))}
           </div>
         </div>

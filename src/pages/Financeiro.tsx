@@ -122,11 +122,11 @@ export default function Financeiro() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Financeiro</h1>
-          <p className="text-sm text-muted-foreground mt-1">Acompanhe o faturamento e comissões</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Financeiro</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Acompanhe o faturamento e comissões</p>
         </div>
         <div className="flex flex-wrap items-end gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 min-w-[130px] sm:flex-none">
             <Label className="text-xs text-muted-foreground">De</Label>
             <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
@@ -153,8 +153,8 @@ export default function Financeiro() {
         <StatCard title="Serviços Período" value={agOk.length} icon={Users} />
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card border border-border rounded-xl shadow-card p-5">
-        <div className="flex items-baseline justify-between mb-4">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-4">
           <div>
             <h2 className="font-display text-lg font-semibold text-foreground">Fluxo por forma de pagamento</h2>
             <p className="text-xs text-muted-foreground">Atendimentos concluídos no período</p>
@@ -180,7 +180,7 @@ export default function Financeiro() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">Faturamento Diário</h2>
           <p className="text-xs text-muted-foreground mb-4">
             {format(parseISO(startDate), "dd/MM/yyyy")} — {format(parseISO(endDate), "dd/MM/yyyy")}
@@ -199,7 +199,7 @@ export default function Financeiro() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">Performance dos Barbeiros</h2>
           <p className="text-xs text-muted-foreground mb-4">Faturamento e comissão no período</p>
           {barbPerf.length === 0 ? (
@@ -222,7 +222,7 @@ export default function Financeiro() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
-        <div className="p-5 border-b border-border">
+        <div className="p-4 sm:p-5 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Comissões dos Barbeiros</h2>
           <p className="text-xs text-muted-foreground mt-1">Clique em um barbeiro para ver os serviços do período</p>
         </div>
@@ -237,20 +237,20 @@ export default function Financeiro() {
               <div key={barb.id}>
                 <button
                   onClick={() => setExpandido(aberto ? null : barb.id)}
-                  className="w-full p-4 flex items-center gap-4 text-left hover:bg-muted/20 transition-colors"
+                  className="w-full p-3 sm:p-4 flex items-center gap-3 sm:gap-4 text-left hover:bg-muted/20 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-sm">
+                  <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-sm">
                     {barb.nome.split(" ").map(n => n[0]).join("")}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">{barb.nome}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{barb.nome}</p>
                     <p className="text-xs text-muted-foreground">{bAgs.length} serviços • {barb.comissao}% comissão</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground">R$ {bFat.toFixed(2)}</p>
                     <p className="text-xs text-primary font-medium">R$ {comissao.toFixed(0)} comissão</p>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-4 h-4 shrink-0 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
                 </button>
                 {aberto && (
                   <div className="bg-muted/10 border-t border-border">
@@ -258,7 +258,7 @@ export default function Financeiro() {
                       <p className="p-4 text-sm text-muted-foreground">Nenhum serviço no período.</p>
                     ) : (
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full min-w-[640px] text-sm">
                           <thead>
                             <tr className="border-b border-border text-left">
                               <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Data</th>
@@ -308,11 +308,11 @@ export default function Financeiro() {
 
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-xl shadow-card">
-        <div className="p-5 border-b border-border">
+        <div className="p-4 sm:p-5 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Serviços Realizados Hoje</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-border text-left">
                 <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Hora</th>

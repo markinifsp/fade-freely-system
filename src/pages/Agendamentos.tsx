@@ -98,13 +98,13 @@ export default function Agendamentos() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Agendamentos</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerencie todos os agendamentos</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Agendamentos</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Gerencie todos os agendamentos</p>
         </div>
         {podeEditar ? (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
+            <Button className="w-full sm:w-auto bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
               <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
             </Button>
           </DialogTrigger>
@@ -157,11 +157,11 @@ export default function Agendamentos() {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-3 items-center">
-        <Filter className="w-4 h-4 text-muted-foreground" />
+      <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
+        <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
         {!soMinhaAgenda && (
           <Select value={filtroBarbeiro} onValueChange={setFiltroBarbeiro}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="flex-1 min-w-[150px] sm:flex-none sm:w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos os Barbeiros</SelectItem>
               {barbeiros.map(b => <SelectItem key={b.id} value={b.id}>{b.nome}</SelectItem>)}
@@ -170,7 +170,7 @@ export default function Agendamentos() {
         )}
 
         <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-          <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="flex-1 min-w-[140px] sm:flex-none sm:w-[160px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos os Status</SelectItem>
             <SelectItem value="confirmado">Confirmado</SelectItem>

@@ -63,7 +63,7 @@ export default function Configuracoes() {
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-display font-bold text-foreground">Configurações</h1>
+        <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Configurações</h1>
         <p className="text-sm text-muted-foreground mt-1">Configure sua barbearia</p>
       </div>
 

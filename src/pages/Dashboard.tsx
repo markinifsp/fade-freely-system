@@ -78,17 +78,17 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Visão geral do período selecionado</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Visão geral do período selecionado</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 sm:flex-none">
             <Label className="text-xs text-muted-foreground">De</Label>
-            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 sm:flex-none">
             <Label className="text-xs text-muted-foreground">Até</Label>
-            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
         </div>
       </div>
@@ -102,7 +102,7 @@ export default function Dashboard() {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">Faturamento por Dia</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={fatPorDia} barSize={days.length > 20 ? 12 : 28}>
@@ -117,23 +117,25 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">Serviços Mais Populares</h2>
           {servicoPie.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
           ) : (
-            <div className="flex items-center gap-4">
-              <ResponsiveContainer width="50%" height={200}>
-                <PieChart>
-                  <Pie data={servicoPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} strokeWidth={2} stroke="hsl(var(--card))">
-                    {servicoPie.map((_, i) => (
-                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex-1 space-y-2">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="w-full sm:w-1/2">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={servicoPie} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} strokeWidth={2} stroke="hsl(var(--card))">
+                      {servicoPie.map((_, i) => (
+                        <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-full sm:flex-1 space-y-2 min-w-0">
                 {servicoPie.map((s, i) => (
                   <div key={s.name} className="flex items-center gap-2 text-sm">
                     <span className="w-3 h-3 rounded-full shrink-0" style={{ background: CHART_COLORS[i % CHART_COLORS.length] }} />
@@ -149,7 +151,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
-          <div className="p-5 border-b border-border flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-foreground">Próximos Horários</h2>
           </div>
           <div className="divide-y divide-border">
@@ -176,7 +178,7 @@ export default function Dashboard() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-xl shadow-card">
-          <div className="p-5 border-b border-border flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-foreground">Performance Barbeiros</h2>
             <Scissors className="w-5 h-5 text-muted-foreground" />
           </div>

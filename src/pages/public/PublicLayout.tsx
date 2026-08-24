@@ -24,19 +24,19 @@ export function PublicLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 h-16 flex items-center justify-between gap-2">
           <Link to="/agendar" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg bg-gradient-gold flex items-center justify-center">
               <Scissors className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display text-lg font-semibold">BarberPro</span>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <ThemeSwitcher />
             {authed ? (
               <>
                 <Button variant="ghost" size="sm" onClick={() => nav("/agendar/meus")}>
-                  <CalendarCheck className="w-4 h-4 mr-1" /> Meus agendamentos
+                  <CalendarCheck className="w-4 h-4 sm:mr-1" /> <span className="hidden sm:inline">Meus agendamentos</span>
                 </Button>
                 <Button variant="ghost" size="sm" onClick={logout}>
                   <LogOut className="w-4 h-4" />
@@ -50,7 +50,7 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="max-w-3xl mx-auto px-4 py-6">{children}</main>
+      <main className="max-w-3xl mx-auto px-3 sm:px-4 py-4 sm:py-6">{children}</main>
     </div>
   );
 }
