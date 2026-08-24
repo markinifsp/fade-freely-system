@@ -65,20 +65,20 @@ export function HistoricoClienteDialog({
         </DialogHeader>
 
         <div className="flex flex-wrap items-end gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 min-w-[130px] sm:flex-none">
             <Label className="text-xs text-muted-foreground">De</Label>
-            <Input type="date" value={de} onChange={(e) => setDe(e.target.value)} className="h-9 w-[140px] text-sm" />
+            <Input type="date" value={de} onChange={(e) => setDe(e.target.value)} className="h-9 w-full sm:w-[140px] text-sm" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 min-w-[130px] sm:flex-none">
             <Label className="text-xs text-muted-foreground">Até</Label>
-            <Input type="date" value={ate} onChange={(e) => setAte(e.target.value)} className="h-9 w-[140px] text-sm" />
+            <Input type="date" value={ate} onChange={(e) => setAte(e.target.value)} className="h-9 w-full sm:w-[140px] text-sm" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 w-full sm:w-auto">
             <Label className="text-xs text-muted-foreground">Serviço</Label>
             <select
               value={servico}
               onChange={(e) => setServico(e.target.value)}
-              className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+              className="h-9 w-full sm:w-auto rounded-md border border-input bg-background px-2 text-sm text-foreground"
             >
               <option value="todos">Todos os serviços</option>
               {servicosDisponiveis.map((s: string) => (
