@@ -153,8 +153,8 @@ export default function Financeiro() {
         <StatCard title="Serviços Período" value={agOk.length} icon={Users} />
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card border border-border rounded-xl shadow-card p-5">
-        <div className="flex items-baseline justify-between mb-4">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
+        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1 mb-4">
           <div>
             <h2 className="font-display text-lg font-semibold text-foreground">Fluxo por forma de pagamento</h2>
             <p className="text-xs text-muted-foreground">Atendimentos concluídos no período</p>
