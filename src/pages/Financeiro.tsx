@@ -237,20 +237,20 @@ export default function Financeiro() {
               <div key={barb.id}>
                 <button
                   onClick={() => setExpandido(aberto ? null : barb.id)}
-                  className="w-full p-4 flex items-center gap-4 text-left hover:bg-muted/20 transition-colors"
+                  className="w-full p-3 sm:p-4 flex items-center gap-3 sm:gap-4 text-left hover:bg-muted/20 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-sm">
+                  <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-gold flex items-center justify-center text-primary-foreground font-bold text-sm">
                     {barb.nome.split(" ").map(n => n[0]).join("")}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">{barb.nome}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{barb.nome}</p>
                     <p className="text-xs text-muted-foreground">{bAgs.length} serviços • {barb.comissao}% comissão</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="text-sm font-semibold text-foreground">R$ {bFat.toFixed(2)}</p>
                     <p className="text-xs text-primary font-medium">R$ {comissao.toFixed(0)} comissão</p>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-4 h-4 shrink-0 text-muted-foreground transition-transform ${aberto ? "rotate-180" : ""}`} />
                 </button>
                 {aberto && (
                   <div className="bg-muted/10 border-t border-border">
