@@ -180,7 +180,7 @@ export default function Financeiro() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">Faturamento Diário</h2>
           <p className="text-xs text-muted-foreground mb-4">
             {format(parseISO(startDate), "dd/MM/yyyy")} — {format(parseISO(endDate), "dd/MM/yyyy")}
@@ -199,7 +199,7 @@ export default function Financeiro() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-1">Performance dos Barbeiros</h2>
           <p className="text-xs text-muted-foreground mb-4">Faturamento e comissão no período</p>
           {barbPerf.length === 0 ? (
@@ -222,7 +222,7 @@ export default function Financeiro() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
-        <div className="p-5 border-b border-border">
+        <div className="p-4 sm:p-5 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Comissões dos Barbeiros</h2>
           <p className="text-xs text-muted-foreground mt-1">Clique em um barbeiro para ver os serviços do período</p>
         </div>
@@ -258,7 +258,7 @@ export default function Financeiro() {
                       <p className="p-4 text-sm text-muted-foreground">Nenhum serviço no período.</p>
                     ) : (
                       <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full min-w-[640px] text-sm">
                           <thead>
                             <tr className="border-b border-border text-left">
                               <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Data</th>
@@ -308,11 +308,11 @@ export default function Financeiro() {
 
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-xl shadow-card">
-        <div className="p-5 border-b border-border">
+        <div className="p-4 sm:p-5 border-b border-border">
           <h2 className="font-display text-lg font-semibold text-foreground">Serviços Realizados Hoje</h2>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full min-w-[640px] text-sm">
             <thead>
               <tr className="border-b border-border text-left">
                 <th className="p-3 text-xs font-medium text-muted-foreground uppercase">Hora</th>

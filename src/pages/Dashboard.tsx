@@ -102,7 +102,7 @@ export default function Dashboard() {
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">Faturamento por Dia</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={fatPorDia} barSize={days.length > 20 ? 12 : 28}>
@@ -117,7 +117,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-5">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-card border border-border rounded-xl shadow-card p-4 sm:p-5">
           <h2 className="font-display text-lg font-semibold text-foreground mb-4">Serviços Mais Populares</h2>
           {servicoPie.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
@@ -149,7 +149,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="bg-card border border-border rounded-xl shadow-card">
-          <div className="p-5 border-b border-border flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-foreground">Próximos Horários</h2>
           </div>
           <div className="divide-y divide-border">
@@ -176,7 +176,7 @@ export default function Dashboard() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-card border border-border rounded-xl shadow-card">
-          <div className="p-5 border-b border-border flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold text-foreground">Performance Barbeiros</h2>
             <Scissors className="w-5 h-5 text-muted-foreground" />
           </div>
