@@ -134,7 +134,7 @@ export default function Clientes() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1 sm:gap-2 justify-between sm:justify-end">
                   <div className="text-right mr-1">
                     <p className="text-sm font-semibold text-primary">R$ {totalGasto}</p>
                     <p className="text-[10px] text-muted-foreground">total gasto</p>
