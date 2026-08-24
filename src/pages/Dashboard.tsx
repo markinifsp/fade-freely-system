@@ -78,17 +78,17 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">Visão geral do período selecionado</p>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Dashboard</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">Visão geral do período selecionado</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 sm:flex-none">
             <Label className="text-xs text-muted-foreground">De</Label>
-            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+            <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1 sm:flex-none">
             <Label className="text-xs text-muted-foreground">Até</Label>
-            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-[150px] h-9 text-sm" />
+            <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full sm:w-[150px] h-9 text-sm" />
           </div>
         </div>
       </div>
