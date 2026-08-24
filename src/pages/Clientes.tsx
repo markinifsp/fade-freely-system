@@ -83,12 +83,12 @@ export default function Clientes() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Clientes</h1>
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Clientes</h1>
           <p className="text-sm text-muted-foreground mt-1">{lista.length} clientes cadastrados</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
+            <Button className="w-full sm:w-auto bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold"><Plus className="w-4 h-4 mr-2" /> Novo Cliente</Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader><DialogTitle className="font-display">Novo Cliente</DialogTitle></DialogHeader>

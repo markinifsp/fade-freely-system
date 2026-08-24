@@ -104,7 +104,7 @@ export default function Agendamentos() {
         {podeEditar ? (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
+            <Button className="w-full sm:w-auto bg-gradient-gold text-primary-foreground hover:opacity-90 shadow-gold">
               <Plus className="w-4 h-4 mr-2" /> Novo Agendamento
             </Button>
           </DialogTrigger>
