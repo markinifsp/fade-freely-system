@@ -1,18 +1,19 @@
 import { useState, useMemo } from "react";
-import { useAgendamentos, useBarbeiros, useServicos, useClientes, useCreateAgendamento, useUpdateAgendamentoStatus, useBarbearia, useBloqueiosByBarbeiroDate } from "@/hooks/useSupabaseData";
+import { useAgendamentos, useBarbeiros, useServicos, useClientes, useCreateAgendamento, useUpdateAgendamentoStatus, useMoveAgendamento, useBarbearia, useBloqueiosByBarbeiroDate } from "@/hooks/useSupabaseData";
 import { useAuth } from "@/contexts/AuthContext";
-import { ChevronLeft, ChevronRight, Clock, Ban, Check, X, Plus, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Ban, Check, X, Plus, AlertTriangle, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { format, addDays, subDays } from "date-fns";
+import { format, addDays, subDays, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ConcluirAgendamentoDialog, formaLabel } from "@/components/ConcluirAgendamentoDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   confirmado: "bg-info/80 border-info",
@@ -66,11 +67,16 @@ export default function Calendario() {
   const { data: bloqueios = [] } = useBloqueiosByDate(dateStr, barbeariaId);
   const updateStatus = useUpdateAgendamentoStatus();
   const createAg = useCreateAgendamento();
+  const moveAg = useMoveAgendamento();
 
   const [selectedAg, setSelectedAg] = useState<any>(null);
   const [concluindo, setConcluindo] = useState<any>(null);
   const [newSlot, setNewSlot] = useState<{ barbeiroId: string; hora: string } | null>(null);
   const [newForm, setNewForm] = useState({ clienteId: "", servicoId: "" });
+
+  // Drag & drop state
+  const [dragAg, setDragAg] = useState<any>(null);
+  const [dropTarget, setDropTarget] = useState<{ barbeiroId: string; hora: string } | null>(null);
 
   const { data: bloqForForm = [] } = useBloqueiosByBarbeiroDate(newSlot?.barbeiroId, dateStr);
   const horaBloqueada = newSlot ? bloqForForm.some((b: any) => {
@@ -103,7 +109,6 @@ export default function Calendario() {
     ? barbeirosAtivos
     : barbeirosAtivos.filter(b => b.id === filtroBarbeiro);
 
-
   const getAgendamentosInSlot = (barbeiroId: string, hora: string) => {
     const slotStart = toMin(hora);
     const slotEnd = slotStart + 30;
@@ -129,6 +134,105 @@ export default function Calendario() {
     return block?.motivo || "Bloqueado";
   };
 
+  // ---- Drag & Drop ----
+  const canDrag = (ag: any) => {
+    if (!podeEditar || ag.status !== "confirmado") return false;
+    if (role === "admin") return true;
+    return ag.barbeiro_id === myBarbeiroId;
+  };
+
+  // Retorna null se válido, ou a mensagem de erro
+  const validateDrop = (ag: any, barbeiroId: string, hora: string): string | null => {
+    const start = toMin(hora);
+    const dur = ag.duracao || 30;
+    const end = start + dur;
+
+    // Permissão para trocar de barbeiro
+    if (barbeiroId !== ag.barbeiro_id && role !== "admin") {
+      return "Você não tem permissão para trocar o barbeiro responsável.";
+    }
+
+    const barb = barbeiros.find(b => b.id === barbeiroId);
+    if (!barb) return "Barbeiro não encontrado.";
+    if (!barb.ativo) return "Barbeiro inativo.";
+
+    // Folga (dia da semana)
+    const dow = getDay(selectedDate);
+    if ((barb.dias_folga || []).includes(dow)) return "Barbeiro está de folga neste dia.";
+
+    // Expediente do barbeiro
+    const bStart = toMin((barb.hora_inicio || "09:00").substring(0, 5));
+    const bEnd = toMin((barb.hora_fim || "18:00").substring(0, 5));
+    if (start < bStart || end > bEnd) return "Fora do expediente do barbeiro.";
+
+    // Bloqueios
+    const bloq = bloqueios.some((b: any) => {
+      if (b.barbeiro_id !== barbeiroId) return false;
+      if (b.dia_inteiro) return true;
+      const s = toMin((b.hora_inicio || "00:00").substring(0, 5));
+      const e = toMin((b.hora_fim || "23:59").substring(0, 5));
+      return start < e && end > s;
+    });
+    if (bloq) return "Horário bloqueado para este barbeiro.";
+
+    // Conflito com outros agendamentos
+    const conflito = agendamentos.some(a => {
+      if (a.id === ag.id || a.barbeiro_id !== barbeiroId || a.status === "cancelado" || !a.hora) return false;
+      const aStart = toMin(a.hora.substring(0, 5));
+      const aEnd = aStart + (a.duracao || 30);
+      return start < aEnd && end > aStart;
+    });
+    if (conflito) return "Conflito com outro agendamento.";
+
+    return null;
+  };
+
+  const handleDragStart = (e: React.DragEvent, ag: any) => {
+    if (!canDrag(ag)) { e.preventDefault(); return; }
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", ag.id);
+    setDragAg(ag);
+  };
+
+  const handleDragOver = (e: React.DragEvent, barbeiroId: string, hora: string) => {
+    if (!dragAg) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dropTarget?.barbeiroId !== barbeiroId || dropTarget?.hora !== hora) {
+      setDropTarget({ barbeiroId, hora });
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, barbeiroId: string, hora: string) => {
+    e.preventDefault();
+    const ag = dragAg;
+    setDragAg(null);
+    setDropTarget(null);
+    if (!ag) return;
+
+    const samePlace = ag.barbeiro_id === barbeiroId && ag.hora?.substring(0, 5) === hora;
+    if (samePlace) return;
+
+    const erro = validateDrop(ag, barbeiroId, hora);
+    if (erro) {
+      toast.error(erro);
+      return;
+    }
+
+    moveAg.mutate({
+      id: ag.id,
+      hora,
+      barbeiro_id: barbeiroId !== ag.barbeiro_id ? barbeiroId : undefined,
+    });
+  };
+
+  const handleDragEnd = () => {
+    setDragAg(null);
+    setDropTarget(null);
+  };
+
+  const dropError = dragAg && dropTarget ? validateDrop(dragAg, dropTarget.barbeiroId, dropTarget.hora) : null;
+
   const handleCriar = () => {
     if (!newSlot || horaBloqueada) return;
     const servico = servicos.find(s => s.id === newForm.servicoId);
@@ -153,7 +257,7 @@ export default function Calendario() {
           <h1 className="text-xl sm:text-2xl font-display font-bold text-foreground">Calendário</h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {podeEditar
-              ? "Clique num horário vago para agendar ou num agendamento para gerenciar"
+              ? "Arraste agendamentos para remarcar, clique num horário vago para agendar"
               : "Visualização somente leitura da agenda"}
           </p>
         </div>
@@ -166,7 +270,6 @@ export default function Calendario() {
             </SelectContent>
           </Select>
         )}
-
       </div>
 
       <div className="flex items-center justify-center gap-2 sm:gap-4 bg-card border border-border rounded-xl p-3">
@@ -218,25 +321,35 @@ export default function Calendario() {
                   const blocked = isBlocked(b.id, hora);
                   const slotStart = toMin(hora);
                   const empty = ags.length === 0 && !blocked && podeEditar;
+                  const isTarget = dragAg && dropTarget?.barbeiroId === b.id && dropTarget?.hora === hora;
+                  const targetValid = isTarget && !validateDrop(dragAg, b.id, hora);
+                  const targetInvalid = isTarget && !!validateDrop(dragAg, b.id, hora);
                   return (
                     <div
                       key={b.id}
-                      onClick={() => { if (empty) { setNewSlot({ barbeiroId: b.id, hora }); } }}
-                      className={`p-1 border-r border-border/30 last:border-r-0 min-h-[40px] space-y-1 ${blocked && ags.length === 0 ? "bg-destructive/5" : ""} ${empty ? "cursor-pointer hover:bg-primary/5 group" : ""}`}
+                      onClick={() => { if (empty && !dragAg) { setNewSlot({ barbeiroId: b.id, hora }); } }}
+                      onDragOver={(e) => handleDragOver(e, b.id, hora)}
+                      onDrop={(e) => handleDrop(e, b.id, hora)}
+                      className={`p-1 border-r border-border/30 last:border-r-0 min-h-[40px] space-y-1 transition-colors ${blocked && ags.length === 0 ? "bg-destructive/5" : ""} ${empty ? "cursor-pointer hover:bg-primary/5 group" : ""} ${targetValid ? "bg-primary/15 ring-1 ring-inset ring-primary/50" : ""} ${targetInvalid ? "bg-destructive/15 ring-1 ring-inset ring-destructive/50" : ""}`}
                     >
                       {ags.length > 0 ? (
                         ags.map(ag => {
                           const agMin = toMin(ag.hora!.substring(0, 5));
                           const offset = agMin - slotStart;
+                          const draggable = canDrag(ag);
                           return (
                             <motion.div
                               key={ag.id}
                               initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              onClick={(e) => { e.stopPropagation(); setSelectedAg(ag); }}
-                              className={`rounded-lg p-1.5 text-[10px] leading-tight border-l-2 cursor-pointer hover:brightness-110 ${statusColors[ag.status || "confirmado"]}`}
+                              animate={{ opacity: dragAg?.id === ag.id ? 0.4 : 1, scale: 1 }}
+                              draggable={draggable}
+                              onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, ag)}
+                              onDragEnd={handleDragEnd}
+                              onClick={(e) => { e.stopPropagation(); if (!dragAg) setSelectedAg(ag); }}
+                              className={`rounded-lg p-1.5 text-[10px] leading-tight border-l-2 hover:brightness-110 ${statusColors[ag.status || "confirmado"]} ${draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${dragAg?.id === ag.id ? "ring-2 ring-primary" : ""}`}
                             >
                               <p className="font-semibold text-foreground truncate flex items-center gap-1">
+                                {draggable && <GripVertical className="w-2.5 h-2.5 shrink-0 opacity-60" />}
                                 {offset > 0 && <span className="text-[9px] font-mono opacity-80">{ag.hora!.substring(0, 5)}</span>}
                                 <span className="truncate">{(ag.clientes as any)?.nome || "Cliente"}</span>
                               </p>
@@ -248,6 +361,10 @@ export default function Calendario() {
                         <div className="rounded-lg p-1.5 text-[10px] bg-destructive/10 border-l-2 border-destructive/30 flex items-center gap-1 text-destructive/70 h-full">
                           <Ban className="w-2.5 h-2.5 shrink-0" />
                           <span className="truncate">Bloqueado</span>
+                        </div>
+                      ) : isTarget ? (
+                        <div className={`rounded-lg p-1.5 text-[10px] flex items-center justify-center h-full font-mono font-semibold ${targetValid ? "text-primary" : "text-destructive"}`}>
+                          {hora}
                         </div>
                       ) : (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center h-full text-primary">
@@ -262,6 +379,14 @@ export default function Calendario() {
           </div>
         </div>
         </div>
+        </div>
+      )}
+
+      {dragAg && dropTarget && (
+        <div className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full text-xs font-medium shadow-lg border ${dropError ? "bg-destructive/90 text-destructive-foreground border-destructive" : "bg-card text-foreground border-primary/50"}`}>
+          {dropError
+            ? dropError
+            : `Mover para ${dropTarget.hora}${dropTarget.barbeiroId !== dragAg.barbeiro_id ? ` • ${barbeiros.find(b => b.id === dropTarget.barbeiroId)?.nome}` : ""}`}
         </div>
       )}
 
