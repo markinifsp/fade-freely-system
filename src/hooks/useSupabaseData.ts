@@ -334,6 +334,38 @@ export function useCreateAgendamento() {
   });
 }
 
+export function useMoveAgendamento() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, hora, barbeiro_id }: { id: string; hora: string; barbeiro_id?: string }) => {
+      const payload: Record<string, unknown> = { hora };
+      if (barbeiro_id) payload.barbeiro_id = barbeiro_id;
+      const { data: rows, error } = await supabase
+        .from("agendamentos")
+        .update(payload as never)
+        .eq("id", id)
+        .eq("status", "confirmado")
+        .select("id");
+      if (error) {
+        if (error.message.includes("idx_no_double_booking")) {
+          throw new Error("Horário já ocupado para este barbeiro!");
+        }
+        throw error;
+      }
+      if (!rows?.length) throw new Error("Agendamento não pode ser movido (status alterado ou sem permissão).");
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["agendamentos"] });
+      qc.invalidateQueries({ queryKey: ["agendamentos-range"] });
+      toast.success("Agendamento remarcado!");
+    },
+    onError: (e) => {
+      qc.invalidateQueries({ queryKey: ["agendamentos"] });
+      toast.error(e.message);
+    },
+  });
+}
+
 export function useUpdateAgendamentoStatus() {
   const qc = useQueryClient();
   return useMutation({
