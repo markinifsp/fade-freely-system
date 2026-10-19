@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { motion } from "framer-motion";
 import { format, addDays, subDays, getDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ConcluirAgendamentoDialog, formaLabel } from "@/components/ConcluirAgendamentoDialog";
@@ -338,15 +337,13 @@ export default function Calendario() {
                           const offset = agMin - slotStart;
                           const draggable = canDrag(ag);
                           return (
-                            <motion.div
+                            <div
                               key={ag.id}
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: dragAg?.id === ag.id ? 0.4 : 1, scale: 1 }}
                               draggable={draggable}
-                              onDragStart={(e) => handleDragStart(e as unknown as React.DragEvent, ag)}
+                              onDragStart={(e) => handleDragStart(e, ag)}
                               onDragEnd={handleDragEnd}
                               onClick={(e) => { e.stopPropagation(); if (!dragAg) setSelectedAg(ag); }}
-                              className={`rounded-lg p-1.5 text-[10px] leading-tight border-l-2 hover:brightness-110 ${statusColors[ag.status || "confirmado"]} ${draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${dragAg?.id === ag.id ? "ring-2 ring-primary" : ""}`}
+                              className={`rounded-lg p-1.5 text-[10px] leading-tight border-l-2 hover:brightness-110 transition-opacity ${statusColors[ag.status || "confirmado"]} ${draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} ${dragAg?.id === ag.id ? "ring-2 ring-primary opacity-40" : ""}`}
                             >
                               <p className="font-semibold text-foreground truncate flex items-center gap-1">
                                 {draggable && <GripVertical className="w-2.5 h-2.5 shrink-0 opacity-60" />}
@@ -354,7 +351,7 @@ export default function Calendario() {
                                 <span className="truncate">{(ag.clientes as any)?.nome || "Cliente"}</span>
                               </p>
                               <p className="text-muted-foreground truncate">{(ag.servicos as any)?.nome} • {ag.duracao}min</p>
-                            </motion.div>
+                            </div>
                           );
                         })
                       ) : blocked ? (
